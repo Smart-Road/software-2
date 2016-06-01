@@ -41,6 +41,7 @@
             this.lblCheckSerialString = new System.Windows.Forms.Label();
             this.tbServerIp = new System.Windows.Forms.TextBox();
             this.txtServerip = new System.Windows.Forms.Label();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
             this.SuspendLayout();
             // 
@@ -202,6 +203,7 @@
         private System.Windows.Forms.Label lblCheckSerialString;
         private System.Windows.Forms.TextBox tbServerIp;
         private System.Windows.Forms.Label txtServerip;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
 

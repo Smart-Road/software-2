@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -14,8 +16,10 @@ namespace Client
         private readonly char beginDelimiter;
         private readonly char endDelimiter;
         private string received;
+        private volatile bool receiving;
         public bool Connected { get; private set; }
-        public string LastCommand { get; private set; }
+        private string lastCommand;
+        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
 
         private const int MaxCommandLength = 1024;
 
@@ -32,54 +36,68 @@ namespace Client
             this.beginDelimiter = beginDelimiter;
             this.endDelimiter = endDelimiter;
             this.received = string.Empty;
-            this.LastCommand = string.Empty;
+            this.lastCommand = string.Empty;
+            this.receiving = false;
         }
 
         public async Task Connect(string ipAddress, int port)
         {
-            await client.ConnectAsync(ipAddress, port);
-            stream = client.GetStream();
-            Connected = true;
+            Task connectTask = client.ConnectAsync(ipAddress, port);
+            await connectTask;
+            if (client.Client.Connected)
+            {
+                stream = client.GetStream();
+                Connected = true;
+                receiving = true;
+                Thread t = new Thread(ListenForCommands);
+                t.Start();
+            }
         }
 
-        public bool Update()
+        public void ListenForCommands()
         {
-            while (stream.DataAvailable)
+            while (receiving)
             {
-                byte[] bytes = new byte[1];
-                stream.Read(bytes, 0, bytes.Length);
-                char[] incoming = Encoding.ASCII.GetChars(bytes);
-                switch (state)
+                while (stream.DataAvailable)
                 {
-                    case State.waiting:
-                        if (incoming[0] == beginDelimiter)
-                        {
-                            received = string.Empty;
-                            state = State.receiving;
-                        }
-                        break;
-                    case State.receiving:
-                        if (incoming[0] != endDelimiter)
-                        {
-                            received += incoming[0];
-                        }
-                        else
-                        {
-                            LastCommand = received;
-                            received = string.Empty;
-                            state = State.waiting;
-                            return true;
-                        }
-                        if (received.Length > MaxCommandLength)
-                        {
-                            throw new LengthException();
-                        }
-                        break;
-                    default:
-                        throw new ArgumentException(nameof(state));
+                    byte[] bytes = new byte[1];
+                    stream.Read(bytes, 0, bytes.Length);
+                    char[] incoming = Encoding.ASCII.GetChars(bytes);
+                    switch (state)
+                    {
+                        case State.waiting:
+                            if (incoming[0] == beginDelimiter)
+                            {
+                                received = string.Empty;
+                                state = State.receiving;
+                            }
+                            break;
+                        case State.receiving:
+                            if (incoming[0] != endDelimiter)
+                            {
+                                received += incoming[0];
+                            }
+                            else
+                            {
+                                lastCommand = received;
+                                received = string.Empty;
+                                state = State.waiting;
+                                OnMessageReceived(new MessageReceivedEventArgs
+                                {
+                                    Message = lastCommand
+                                });
+                            }
+                            if (received.Length > MaxCommandLength)
+                            {
+                                throw new LengthException();
+                            }
+                            break;
+                        default:
+                            throw new ArgumentException(nameof(state));
+                    }
                 }
+                Thread.Sleep(1);
             }
-            return false;
         }
 
         public void SendMessage(string message)
@@ -103,6 +121,12 @@ namespace Client
             client.Close();
             Connected = false;
         }
+
+        protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
+        {
+            EventHandler<MessageReceivedEventArgs> handler = MessageReceived;
+            handler?.Invoke(this, e);
+        }
     }
 
     public class LengthException : Exception
@@ -120,5 +144,9 @@ namespace Client
         {
         }
     }
-}
 
+    public class MessageReceivedEventArgs : EventArgs
+    {
+        public string Message { get; set; }
+    }
+}

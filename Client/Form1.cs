@@ -17,13 +17,22 @@ namespace Client
         public Form1()
         {
             InitializeComponent();
-            messageHandler = new MessageHandler(); ;
+            messageHandler = new MessageHandler();
+            ;
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
             tbRFIDNumber.MaxLength = Rfid.SerialNumberStringLengthMax;
             connectionTask = null;
             messageNumber = 1;
+            messageHandler.MessageReceived += messageHandler_MessageReceived;
         }
+
+        private void messageHandler_MessageReceived(object sender, MessageReceivedEventArgs e)
+        {
+            AddToInfo(e.Message);
+        }
+        
+
 
         private void btnAddToDatabase_Click(object sender, EventArgs e)
         {
@@ -75,7 +84,7 @@ namespace Client
                     {
                         AddToInfo("Trying to connect.. a moment please.");
                         messageHandler = new MessageHandler();
-                        int port = 80;
+                        int port = 13;
                         string errorMessage = null;
                         try
                         {
@@ -92,8 +101,7 @@ namespace Client
                             errorMessage = socketException.Message;
                             Console.WriteLine(socketException.ToString());
                         }
-                        errorMessage = errorMessage ?? "none";
-                        AddToInfo(messageHandler.Connected ? $"Connected to {serverIp}" : $"Could not connect: {errorMessage}");
+                        AddToInfo(messageHandler.Connected ? $"Connected to {serverIp}" : $"Could not connect: {errorMessage ?? "none"}");
                     }
                     else
                     {
