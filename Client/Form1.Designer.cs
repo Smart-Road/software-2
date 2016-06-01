@@ -39,6 +39,8 @@
             this.tbRFIDNumber = new System.Windows.Forms.TextBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.lblCheckSerialString = new System.Windows.Forms.Label();
+            this.tbServerIp = new System.Windows.Forms.TextBox();
+            this.txtServerip = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
             this.SuspendLayout();
             // 
@@ -48,7 +50,7 @@
             this.btnAddToDatabase.Location = new System.Drawing.Point(214, 88);
             this.btnAddToDatabase.Name = "btnAddToDatabase";
             this.btnAddToDatabase.Size = new System.Drawing.Size(148, 23);
-            this.btnAddToDatabase.TabIndex = 3;
+            this.btnAddToDatabase.TabIndex = 5;
             this.btnAddToDatabase.Text = "Add RFID to database";
             this.btnAddToDatabase.UseVisualStyleBackColor = true;
             this.btnAddToDatabase.Click += new System.EventHandler(this.btnAddToDatabase_Click);
@@ -58,7 +60,7 @@
             this.nudRFIDSpeed.Location = new System.Drawing.Point(88, 96);
             this.nudRFIDSpeed.Name = "nudRFIDSpeed";
             this.nudRFIDSpeed.Size = new System.Drawing.Size(120, 20);
-            this.nudRFIDSpeed.TabIndex = 5;
+            this.nudRFIDSpeed.TabIndex = 4;
             // 
             // txtNumberRFID
             // 
@@ -83,7 +85,7 @@
             this.btnGetListOfRFID.Location = new System.Drawing.Point(166, 136);
             this.btnGetListOfRFID.Name = "btnGetListOfRFID";
             this.btnGetListOfRFID.Size = new System.Drawing.Size(148, 23);
-            this.btnGetListOfRFID.TabIndex = 8;
+            this.btnGetListOfRFID.TabIndex = 7;
             this.btnGetListOfRFID.Text = "Lijst uit database ophalen";
             this.btnGetListOfRFID.UseVisualStyleBackColor = true;
             this.btnGetListOfRFID.Click += new System.EventHandler(this.btnGetListOfRFID_Click);
@@ -94,14 +96,14 @@
             this.comboBox1.Location = new System.Drawing.Point(22, 138);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(113, 21);
-            this.comboBox1.TabIndex = 9;
+            this.comboBox1.TabIndex = 6;
             // 
             // btnClear
             // 
             this.btnClear.Location = new System.Drawing.Point(110, 389);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(75, 23);
-            this.btnClear.TabIndex = 11;
+            this.btnClear.TabIndex = 8;
             this.btnClear.Text = "Clear";
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.BtnClear_Click);
@@ -113,18 +115,20 @@
             this.lbInfo.Name = "lbInfo";
             this.lbInfo.Size = new System.Drawing.Size(250, 212);
             this.lbInfo.TabIndex = 10;
+            this.lbInfo.TabStop = false;
             // 
             // tbRFIDNumber
             // 
             this.tbRFIDNumber.Location = new System.Drawing.Point(108, 69);
+            this.tbRFIDNumber.MaxLength = 8;
             this.tbRFIDNumber.Name = "tbRFIDNumber";
             this.tbRFIDNumber.Size = new System.Drawing.Size(100, 20);
-            this.tbRFIDNumber.TabIndex = 12;
+            this.tbRFIDNumber.TabIndex = 3;
             this.tbRFIDNumber.TextChanged += new System.EventHandler(this.tbRFIDNumber_TextChanged);
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(22, 28);
+            this.btnConnect.Location = new System.Drawing.Point(12, 32);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(75, 23);
             this.btnConnect.TabIndex = 0;
@@ -141,11 +145,30 @@
             this.lblCheckSerialString.TabIndex = 13;
             this.lblCheckSerialString.Text = "Input checker";
             // 
+            // tbServerIp
+            // 
+            this.tbServerIp.Location = new System.Drawing.Point(159, 34);
+            this.tbServerIp.Name = "tbServerIp";
+            this.tbServerIp.Size = new System.Drawing.Size(100, 20);
+            this.tbServerIp.TabIndex = 1;
+            this.tbServerIp.Text = "localhost";
+            // 
+            // txtServerip
+            // 
+            this.txtServerip.AutoSize = true;
+            this.txtServerip.Location = new System.Drawing.Point(104, 37);
+            this.txtServerip.Name = "txtServerip";
+            this.txtServerip.Size = new System.Drawing.Size(52, 13);
+            this.txtServerip.TabIndex = 15;
+            this.txtServerip.Text = "Server ip:";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(842, 539);
+            this.Controls.Add(this.txtServerip);
+            this.Controls.Add(this.tbServerIp);
             this.Controls.Add(this.lblCheckSerialString);
             this.Controls.Add(this.tbRFIDNumber);
             this.Controls.Add(this.btnClear);
@@ -177,6 +200,8 @@
         private System.Windows.Forms.TextBox tbRFIDNumber;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Label lblCheckSerialString;
+        private System.Windows.Forms.TextBox tbServerIp;
+        private System.Windows.Forms.Label txtServerip;
     }
 }
 

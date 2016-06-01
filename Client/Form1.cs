@@ -1,31 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 
 namespace Client
 {
     public partial class Form1 : Form
     {
-        private bool connected;
         private MessageHandler messageHandler;
+        private Task connectionTask;
+        private int messageNumber;
 
         public Form1()
         {
             InitializeComponent();
             messageHandler = new MessageHandler(); ;
-            connected = false;
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
+            tbRFIDNumber.MaxLength = Rfid.SerialNumberStringLength;
+            connectionTask = null;
+            messageNumber = 1;
         }
 
         private void btnAddToDatabase_Click(object sender, EventArgs e)
@@ -41,17 +38,17 @@ namespace Client
                 try
                 {
                     messageHandler.SendMessage(message);
-                    lbInfo.Items.Add($"Sent message:{message}");
+                    AddToInfo($"Sent message:{message}");
                 }
                 catch (IOException ex)
                 {
                     Console.WriteLine(ex);
-                    lbInfo.Items.Add("Network error");
+                    AddToInfo("Network error");
                 }
             }
             else if (messageHandler == null)
             {
-                lbInfo.Items.Add("Not yet connected, could not send command.");
+                AddToInfo("Not yet connected, could not send command.");
             }
         }
 
@@ -64,54 +61,84 @@ namespace Client
         private void BtnClear_Click(object sender, EventArgs e)
         {
             lbInfo.Items.Clear();
+            messageNumber = 1;
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
+        private async void btnConnect_Click(object sender, EventArgs e)
         {
-            if (!connected)
+            if (connectionTask?.Status != TaskStatus.WaitingForActivation)
             {
-                string serverIP = "localhost";
-                int port = 80;
-                try
+                string serverIp = tbServerIp.Text.Trim();
+                if (serverIp.Length != 0)
                 {
-                    messageHandler.Connect(ipAddress: serverIP, port: port);
-                    connected = true;
+                    if (!messageHandler.Connected)
+                    {
+                        AddToInfo("Trying to connect.. a moment please.");
+                        messageHandler = new MessageHandler();
+                        int port = 80;
+                        string errorMessage = null;
+                        try
+                        {
+                            connectionTask = messageHandler.Connect(ipAddress: serverIp, port: port);
+                            await connectionTask;
+                        }
+                        catch (InvalidOperationException invalidOperationException)
+                        {
+                            errorMessage = invalidOperationException.Message;
+                            Console.WriteLine(invalidOperationException.ToString());
+                        }
+                        catch (SocketException socketException)
+                        {
+                            errorMessage = socketException.Message;
+                            Console.WriteLine(socketException.ToString());
+                        }
+                        errorMessage = errorMessage ?? "none";
+                        AddToInfo(messageHandler.Connected ? $"Connected to {serverIp}" : $"Could not connect: {errorMessage}");
+                    }
+                    else
+                    {
+                        messageHandler.Disconnect();
+                        AddToInfo("Disconnected");
+                    }
+                    btnConnect.Text = messageHandler.Connected ? "Disconnect" : "Connect";
+                    RfidSerialNumberInputValidator();
                 }
-                catch (InvalidOperationException invalidOperationException)
+                else
                 {
-                    Console.WriteLine(invalidOperationException.ToString());
-
+                    AddToInfo("Enter ip adress");
                 }
-                catch (SocketException socketException)
-                {
-                    Console.WriteLine(socketException.ToString());
-                }
-                lbInfo.Items.Add(connected ? $"Connected to {serverIP}" : "Could not connect");
-                btnConnect.Text = connected ? "Disconnect" : "Connect";
             }
             else
             {
-                messageHandler.Disconnect();
-                messageHandler = null;
-                connected = false;
-                btnConnect.Text = "Connect";
+                AddToInfo("Please wait until the method is complete.");
             }
         }
 
-    private void tbRFIDNumber_TextChanged(object sender, EventArgs e)
-    {
-        bool valid = false;
-        string input = tbRFIDNumber.Text;
-        Console.WriteLine(input.Length);
-        if (input.Length == Rfid.SerialNumberStringLength)
+        private void tbRFIDNumber_TextChanged(object sender, EventArgs e)
         {
-            long parsed;
-            CultureInfo provider = CultureInfo.CurrentCulture;
-            valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
+            RfidSerialNumberInputValidator();
         }
-        lblCheckSerialString.Text = valid ? "Valid input" : "Invalid input";
-        lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;
-        btnAddToDatabase.Enabled = valid;
+
+        //check if serialnumber text is valid and messagehandler is connected, if so, make the send button available
+        private void RfidSerialNumberInputValidator()
+        {
+            bool valid = false;
+            string input = tbRFIDNumber.Text;
+            if (input.Length >= Rfid.SerialNumberStringLengthMin && input.Length <= Rfid.SerialNumberStringLengthMax)
+            {
+                long parsed;
+                CultureInfo provider = CultureInfo.CurrentCulture;
+                valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
+            }
+            lblCheckSerialString.Text = valid ? "Valid input" : "Invalid input";
+            lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;
+            btnAddToDatabase.Enabled = valid && messageHandler.Connected;
+        }
+
+        private void AddToInfo(string message)
+        {
+            lbInfo.Items.Insert(0, $"({messageNumber}) {message}");
+            messageNumber++;
+        }
     }
-}
 }

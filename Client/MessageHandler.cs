@@ -35,12 +35,11 @@ namespace Client
             this.LastCommand = string.Empty;
         }
 
-        public async void Connect(string ipAddress, int port)
+        public async Task Connect(string ipAddress, int port)
         {
-            Task task = client.ConnectAsync(ipAddress, port);
-            await task;
+            await client.ConnectAsync(ipAddress, port);
             stream = client.GetStream();
-            Console.WriteLine("Connected");
+            Connected = true;
         }
 
         public bool Update()
@@ -85,6 +84,10 @@ namespace Client
 
         public void SendMessage(string message)
         {
+            if (stream == null || Connected == false)
+            {
+                throw new InvalidOperationException("can not send message when not connected");
+            }
             string messageWithDelimiters = $"{beginDelimiter}{message}{endDelimiter}";
             if (messageWithDelimiters.Length > MaxCommandLength)
             {
@@ -98,6 +101,7 @@ namespace Client
         {
             stream.Close();
             client.Close();
+            Connected = false;
         }
     }
 

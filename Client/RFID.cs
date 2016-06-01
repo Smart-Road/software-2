@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Client
 {
@@ -16,9 +11,10 @@ namespace Client
     {
         public const int MaxSpeed = 130;
         public const int MinSpeed = 5;
-        public const long MinHexSerialNumber = 268435456;
-        public const long MaxHexSerialNumber = 4294967295;
-        public const byte SerialNumberStringLength = 8;
+        public const long MinHexSerialNumber = 0x10000000;
+        public const long MaxHexSerialNumber = 0xFFFFFFFF;
+        public const byte SerialNumberStringLengthMin = 8;
+        public const byte SerialNumberStringLengthMax = 12;
 
         private readonly long serialNumber;
 
@@ -50,12 +46,14 @@ namespace Client
 
         public Rfid(string serialNumberString, int speed)
         {
-            if (string.IsNullOrWhiteSpace(serialNumberString) || serialNumberString.Length != SerialNumberStringLength)
+            if (string.IsNullOrWhiteSpace(serialNumberString) || 
+                serialNumberString.Length < SerialNumberStringLengthMin || 
+                serialNumberString.Length > SerialNumberStringLengthMax)
             {
                 throw new ArgumentException(nameof(serialNumberString));
             }
             long serialNumber;
-            //throws formatexception if string is invalid
+            // method throws formatexception if string is invalid
             serialNumber = long.Parse(serialNumberString, NumberStyles.AllowHexSpecifier);
 
             if (serialNumber < MinHexSerialNumber || serialNumber > MaxHexSerialNumber)
