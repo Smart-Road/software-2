@@ -125,6 +125,7 @@ namespace Client
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
         {
             EventHandler<MessageReceivedEventArgs> handler = MessageReceived;
+            // TODO: make sure handler is not null, somehow
             handler?.Invoke(this, e);
         }
     }
