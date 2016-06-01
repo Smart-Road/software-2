@@ -20,7 +20,7 @@ namespace Client
             messageHandler = new MessageHandler(); ;
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
-            tbRFIDNumber.MaxLength = Rfid.SerialNumberStringLength;
+            tbRFIDNumber.MaxLength = Rfid.SerialNumberStringLengthMax;
             connectionTask = null;
             messageNumber = 1;
         }
@@ -129,6 +129,10 @@ namespace Client
                 long parsed;
                 CultureInfo provider = CultureInfo.CurrentCulture;
                 valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
+                if (parsed < Rfid.MinHexSerialNumber || parsed > Rfid.MaxHexSerialNumber)
+                {
+                    valid = false;
+                }
             }
             lblCheckSerialString.Text = valid ? "Valid input" : "Invalid input";
             lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;

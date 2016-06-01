@@ -12,7 +12,7 @@ namespace Client
         public const int MaxSpeed = 130;
         public const int MinSpeed = 5;
         public const long MinHexSerialNumber = 0x10000000;
-        public const long MaxHexSerialNumber = 0xFFFFFFFF;
+        public const long MaxHexSerialNumber = 0xFFFFFFFFFFFF;
         public const byte SerialNumberStringLengthMin = 8;
         public const byte SerialNumberStringLengthMax = 12;
 
