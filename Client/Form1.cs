@@ -18,7 +18,6 @@ namespace Client
         {
             InitializeComponent();
             messageHandler = new MessageHandler();
-            ;
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
             tbRFIDNumber.MaxLength = Rfid.SerialNumberStringLengthMax;
@@ -43,11 +42,11 @@ namespace Client
                 messageHandler != null)
             {
                 Rfid rfid = new Rfid(serialNumber, speed);
-                string message = $"ADD:{rfid}";
+                string message = $"ADDRFID:{rfid}";
                 try
                 {
                     messageHandler.SendMessage(message);
-                    AddToInfo($"Sent message:{message}");
+                    AddToInfo($"Sent message:{message}, with RFID(hex):{rfid.SerialNumber.ToString("X8")}");
                 }
                 catch (IOException ex)
                 {
@@ -84,11 +83,12 @@ namespace Client
                     {
                         AddToInfo("Trying to connect.. a moment please.");
                         messageHandler = new MessageHandler();
+                        messageHandler.MessageReceived += messageHandler_MessageReceived;
                         int port = 13;
                         string errorMessage = null;
                         try
                         {
-                            connectionTask = messageHandler.Connect(ipAddress: serverIp, port: port);
+                            connectionTask = messageHandler.Connect(ipAddress: serverIp, port: port, zoneId: (int)nudZoneId.Value);
                             await connectionTask;
                         }
                         catch (InvalidOperationException invalidOperationException)

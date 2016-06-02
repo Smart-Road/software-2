@@ -66,7 +66,8 @@ namespace Client
 
         public override string ToString()
         {
-            return $"{serialNumber.ToString("X8")},{speed}";
+            //return $"{serialNumber.ToString("X8")},{speed}"; // for hexadecimal
+            return $"{serialNumber},{speed}";
         }
     }
 }

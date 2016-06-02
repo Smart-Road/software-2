@@ -42,7 +42,10 @@
             this.tbServerIp = new System.Windows.Forms.TextBox();
             this.txtServerip = new System.Windows.Forms.Label();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.nudZoneId = new System.Windows.Forms.NumericUpDown();
+            this.txtZoneId = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).BeginInit();
             this.SuspendLayout();
             // 
             // btnAddToDatabase
@@ -101,7 +104,7 @@
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(110, 389);
+            this.btnClear.Location = new System.Drawing.Point(108, 415);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(75, 23);
             this.btnClear.TabIndex = 8;
@@ -112,9 +115,9 @@
             // lbInfo
             // 
             this.lbInfo.FormattingEnabled = true;
-            this.lbInfo.Location = new System.Drawing.Point(22, 174);
+            this.lbInfo.Location = new System.Drawing.Point(22, 180);
             this.lbInfo.Name = "lbInfo";
-            this.lbInfo.Size = new System.Drawing.Size(250, 212);
+            this.lbInfo.Size = new System.Drawing.Size(617, 212);
             this.lbInfo.TabIndex = 10;
             this.lbInfo.TabStop = false;
             // 
@@ -148,7 +151,7 @@
             // 
             // tbServerIp
             // 
-            this.tbServerIp.Location = new System.Drawing.Point(159, 34);
+            this.tbServerIp.Location = new System.Drawing.Point(290, 33);
             this.tbServerIp.Name = "tbServerIp";
             this.tbServerIp.Size = new System.Drawing.Size(100, 20);
             this.tbServerIp.TabIndex = 1;
@@ -157,17 +160,45 @@
             // txtServerip
             // 
             this.txtServerip.AutoSize = true;
-            this.txtServerip.Location = new System.Drawing.Point(104, 37);
+            this.txtServerip.Location = new System.Drawing.Point(235, 36);
             this.txtServerip.Name = "txtServerip";
             this.txtServerip.Size = new System.Drawing.Size(52, 13);
             this.txtServerip.TabIndex = 15;
             this.txtServerip.Text = "Server ip:";
+            // 
+            // nudZoneId
+            // 
+            this.nudZoneId.Location = new System.Drawing.Point(146, 35);
+            this.nudZoneId.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudZoneId.Name = "nudZoneId";
+            this.nudZoneId.Size = new System.Drawing.Size(57, 20);
+            this.nudZoneId.TabIndex = 16;
+            this.nudZoneId.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // txtZoneId
+            // 
+            this.txtZoneId.AutoSize = true;
+            this.txtZoneId.Location = new System.Drawing.Point(94, 41);
+            this.txtZoneId.Name = "txtZoneId";
+            this.txtZoneId.Size = new System.Drawing.Size(46, 13);
+            this.txtZoneId.TabIndex = 17;
+            this.txtZoneId.Text = "Zone id:";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(842, 539);
+            this.Controls.Add(this.txtZoneId);
+            this.Controls.Add(this.nudZoneId);
             this.Controls.Add(this.txtServerip);
             this.Controls.Add(this.tbServerIp);
             this.Controls.Add(this.lblCheckSerialString);
@@ -184,6 +215,7 @@
             this.Name = "Form1";
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -204,6 +236,8 @@
         private System.Windows.Forms.TextBox tbServerIp;
         private System.Windows.Forms.Label txtServerip;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.NumericUpDown nudZoneId;
+        private System.Windows.Forms.Label txtZoneId;
     }
 }
 

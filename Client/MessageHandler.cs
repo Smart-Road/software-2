@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Net.Sockets;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -19,9 +20,13 @@ namespace Client
         private volatile bool receiving;
         public bool Connected { get; private set; }
         private string lastCommand;
-        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+        public event MessageReceivedDelegate MessageReceived;
+
+        public delegate void MessageReceivedDelegate(object sender, MessageReceivedEventArgs e);
 
         private const int MaxCommandLength = 1024;
+
+        private BackgroundWorker bwMessageListener;
 
         private enum State
         {
@@ -38,27 +43,47 @@ namespace Client
             this.received = string.Empty;
             this.lastCommand = string.Empty;
             this.receiving = false;
+            this.bwMessageListener = new BackgroundWorker();
+            bwMessageListener.DoWork += ListenForCommandsBw;
+            bwMessageListener.ProgressChanged += bwMessageListener_ReportProgress;
         }
 
-        public async Task Connect(string ipAddress, int port)
+        public void bwMessageListener_ReportProgress(object sender, ProgressChangedEventArgs e)
+        {
+            string command = e.UserState as string;
+            OnMessageReceived(new MessageReceivedEventArgs(command));
+        }
+        public async Task Connect(string ipAddress, int port, int zoneId)
         {
             Task connectTask = client.ConnectAsync(ipAddress, port);
             await connectTask;
+            if (connectTask.IsFaulted)
+            {
+                if (connectTask.Exception != null)
+                {
+                    throw connectTask.Exception;
+                }
+            }
             if (client.Client.Connected)
             {
                 stream = client.GetStream();
                 Connected = true;
                 receiving = true;
-                Thread t = new Thread(ListenForCommands);
-                t.Start();
+                SendMessage($"IDENTIFICATION:{zoneId}");
+                ListenForCommands();
             }
         }
 
         public void ListenForCommands()
         {
+            bwMessageListener.RunWorkerAsync();
+        }
+
+        private void ListenForCommandsBw(object sender, DoWorkEventArgs e)
+        {
             while (receiving)
             {
-                while (stream.DataAvailable)
+                while (stream?.DataAvailable ?? false)
                 {
                     byte[] bytes = new byte[1];
                     stream.Read(bytes, 0, bytes.Length);
@@ -82,10 +107,9 @@ namespace Client
                                 lastCommand = received;
                                 received = string.Empty;
                                 state = State.waiting;
-                                OnMessageReceived(new MessageReceivedEventArgs
-                                {
-                                    Message = lastCommand
-                                });
+                                BackgroundWorker worker = (BackgroundWorker)sender;
+                                worker.WorkerReportsProgress = true;
+                                worker.ReportProgress(0, lastCommand);
                             }
                             if (received.Length > MaxCommandLength)
                             {
@@ -120,13 +144,13 @@ namespace Client
             stream.Close();
             client.Close();
             Connected = false;
+            receiving = false;
         }
 
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
         {
-            EventHandler<MessageReceivedEventArgs> handler = MessageReceived;
-            // TODO: make sure handler is not null, somehow
-            handler?.Invoke(this, e);
+            // TODO: messagereceived is always null
+            MessageReceived?.Invoke(this, e);
         }
     }
 
@@ -149,5 +173,10 @@ namespace Client
     public class MessageReceivedEventArgs : EventArgs
     {
         public string Message { get; set; }
+
+        public MessageReceivedEventArgs(string message)
+        {
+            Message = message;
+        }
     }
 }
