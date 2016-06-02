@@ -2,19 +2,21 @@
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Client
 {
-    public partial class Form1 : Form
+    public partial class s : Form
     {
         private MessageHandler messageHandler;
         private Task connectionTask;
         private int messageNumber;
+        private RfidManager rfidManager;
 
-        public Form1()
+        public s()
         {
             InitializeComponent();
             messageHandler = new MessageHandler();
@@ -24,6 +26,17 @@ namespace Client
             connectionTask = null;
             messageNumber = 1;
             messageHandler.MessageReceived += messageHandler_MessageReceived;
+            rfidManager = new RfidManager();
+            rfidManager.CollectionChanged += RfidManagerOnCollectionChanged;
+        }
+
+        private void RfidManagerOnCollectionChanged(object sender, EventArgs eventArgs)
+        {
+            lbRfids.Items.Clear();
+            foreach (var rfid in rfidManager.Rfids)
+            {
+                lbRfids.Items.Add(rfid);
+            }
         }
 
         private void messageHandler_MessageReceived(object sender, MessageReceivedEventArgs e)
@@ -42,17 +55,19 @@ namespace Client
                 messageHandler != null)
             {
                 Rfid rfid = new Rfid(serialNumber, speed);
-                string message = $"ADDRFID:{rfid}";
+                string message = $"ADDRFID:{rfid.ToNumberString()}";
                 try
                 {
                     messageHandler.SendMessage(message);
-                    AddToInfo($"Sent message:{message}, with RFID(hex):{rfid.SerialNumber.ToString("X8")}");
+                    AddToInfo($"Sent message:{message}, with RFID(hex):{rfid.SerialNumber}");
                 }
                 catch (IOException ex)
                 {
                     Console.WriteLine(ex);
                     AddToInfo("Network error");
                 }
+                // for now, just add. TODO: Wait for server response before adding to own db
+                rfidManager.AddRfid(rfid);
             }
             else if (messageHandler == null)
             {

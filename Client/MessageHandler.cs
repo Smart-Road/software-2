@@ -44,8 +44,8 @@ namespace Client
             this.lastCommand = string.Empty;
             this.receiving = false;
             this.bwMessageListener = new BackgroundWorker();
-            bwMessageListener.DoWork += ListenForCommandsBw;
-            bwMessageListener.ProgressChanged += bwMessageListener_ReportProgress;
+            this.bwMessageListener.DoWork += ListenForCommandsBw;
+            this.bwMessageListener.ProgressChanged += bwMessageListener_ReportProgress;
         }
 
         public void bwMessageListener_ReportProgress(object sender, ProgressChangedEventArgs e)
@@ -149,7 +149,6 @@ namespace Client
 
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
         {
-            // TODO: messagereceived is always null
             MessageReceived?.Invoke(this, e);
         }
     }
