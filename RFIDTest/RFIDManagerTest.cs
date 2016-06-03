@@ -33,6 +33,15 @@ namespace ClientTest
         }
 
         [TestMethod]
+        public void TestAddSameSerialNumberShouldNotAddSecond()
+        {
+            long serialNumber = 0xFFFFFFFFFF;
+            RfidManager rfidManager = new RfidManager();
+            Assert.IsTrue(rfidManager.AddRfid(new Rfid(serialNumber, 10)));
+            Assert.IsFalse(rfidManager.AddRfid(new Rfid(serialNumber, 50)));
+        }
+
+        [TestMethod]
         public void TestRemoveNullRfid()
         {
             RfidManager rfidManager = new RfidManager();

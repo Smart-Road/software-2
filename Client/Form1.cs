@@ -13,7 +13,6 @@ namespace Client
     {
         private MessageHandler messageHandler;
         private Task connectionTask;
-        private int messageNumber;
         private RfidManager rfidManager;
 
         public s()
@@ -24,7 +23,6 @@ namespace Client
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
             tbRFIDNumber.MaxLength = Rfid.SerialNumberStringLengthMax;
             connectionTask = null;
-            messageNumber = 1;
             messageHandler.MessageReceived += messageHandler_MessageReceived;
             rfidManager = new RfidManager();
             rfidManager.CollectionChanged += RfidManagerOnCollectionChanged;
@@ -84,7 +82,6 @@ namespace Client
         private void BtnClear_Click(object sender, EventArgs e)
         {
             lbInfo.Items.Clear();
-            messageNumber = 1;
         }
 
         private async void btnConnect_Click(object sender, EventArgs e)
@@ -164,8 +161,8 @@ namespace Client
 
         private void AddToInfo(string message)
         {
-            lbInfo.Items.Insert(0, $"({messageNumber}) {message}");
-            messageNumber++;
+            int msgNumber = lbInfo.Items.Count + 1;
+            lbInfo.Items.Insert(0, $"({msgNumber}) {message}");
         }
     }
 }

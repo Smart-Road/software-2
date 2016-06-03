@@ -28,18 +28,19 @@ namespace Client
         {
             CollectionChanged?.Invoke(this, e);
         }
-
+        
         public bool AddRfid(Rfid rfid)
         {
             if (rfid == null)
             {
                 throw new ArgumentException(nameof(rfid));
             }
-            // TODO: check for serial number instead of object
-            if (rfids.Contains(rfid))
+
+            if (ContainsSerialNumber(rfid.SerialNumber))
             {
                 return false;
             }
+
             rfids.Add(rfid);
             return true;
         }
@@ -47,6 +48,18 @@ namespace Client
         public bool RemoveRfid(Rfid rfid)
         {
             return rfids.Remove(rfid);
+        }
+
+        public bool ContainsSerialNumber(long serialNumber)
+        {
+            foreach (Rfid internalRfid in rfids)
+            {
+                if (serialNumber == internalRfid.SerialNumber)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
