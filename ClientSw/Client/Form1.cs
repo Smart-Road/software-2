@@ -21,7 +21,6 @@ namespace Client
             messageHandler = new MessageHandler();
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
-            tbRFIDNumber.MaxLength = Rfid.SerialNumberStringLengthMax;
             connectionTask = null;
             messageHandler.MessageReceived += messageHandler_MessageReceived;
             rfidManager = new RfidManager();

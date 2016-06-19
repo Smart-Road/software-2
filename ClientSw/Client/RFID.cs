@@ -11,10 +11,9 @@ namespace Client
     {
         public const int MaxSpeed = 130;
         public const int MinSpeed = 5;
-        public const long MinHexSerialNumber = 0x10000000;
-        public const long MaxHexSerialNumber = 0xFFFFFFFFFFFF;
-        public const byte SerialNumberStringLengthMin = 8;
-        public const byte SerialNumberStringLengthMax = 12;
+        public const long MinHexSerialNumber = 0x10000000; // min length = 8
+        public const long MaxHexSerialNumber = 0xFFFFFFFFFFFFFF; // max length = 14
+
 
         private readonly long serialNumber;
 
@@ -46,21 +45,18 @@ namespace Client
 
         public Rfid(string serialNumberString, int speed)
         {
-            if (string.IsNullOrWhiteSpace(serialNumberString) || 
-                serialNumberString.Length < SerialNumberStringLengthMin || 
-                serialNumberString.Length > SerialNumberStringLengthMax)
+            if (string.IsNullOrWhiteSpace(serialNumberString))
             {
                 throw new ArgumentException(nameof(serialNumberString));
             }
-            long serialNumber;
             // method throws formatexception if string is invalid
-            serialNumber = long.Parse(serialNumberString, NumberStyles.AllowHexSpecifier);
+            long serialNr = long.Parse(serialNumberString, NumberStyles.AllowHexSpecifier);
 
-            if (serialNumber < MinHexSerialNumber || serialNumber > MaxHexSerialNumber)
+            if (serialNr < MinHexSerialNumber || serialNr > MaxHexSerialNumber)
             {
-                throw new ArgumentException(nameof(serialNumber));
+                throw new ArgumentException(nameof(serialNr));
             }
-            this.serialNumber = serialNumber;
+            this.serialNumber = serialNr;
             this.Speed = speed;
         }
 
@@ -76,18 +72,14 @@ namespace Client
 
         public static bool ValidateRfid(string input)
         {
-            bool valid = false;
-            if (input.Length >= SerialNumberStringLengthMin && input.Length <= SerialNumberStringLengthMax)
+            if (string.IsNullOrWhiteSpace(input))
             {
-                long parsed;
-                CultureInfo provider = CultureInfo.InvariantCulture;
-                valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
-                if (parsed < Rfid.MinHexSerialNumber || parsed > Rfid.MaxHexSerialNumber)
-                {
-                    valid = false;
-                }
+                return false;
             }
-            return valid;
+            long parsed;
+            CultureInfo provider = CultureInfo.InvariantCulture;
+            bool valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
+            return valid && parsed >= MinHexSerialNumber && parsed <= MaxHexSerialNumber;
         }
     }
 }

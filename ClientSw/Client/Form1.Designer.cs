@@ -116,7 +116,7 @@
             // tbRFIDNumber
             // 
             this.tbRFIDNumber.Location = new System.Drawing.Point(97, 69);
-            this.tbRFIDNumber.MaxLength = 8;
+            this.tbRFIDNumber.MaxLength = 50;
             this.tbRFIDNumber.Name = "tbRFIDNumber";
             this.tbRFIDNumber.Size = new System.Drawing.Size(106, 20);
             this.tbRFIDNumber.TabIndex = 3;
