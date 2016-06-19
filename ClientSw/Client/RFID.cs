@@ -80,7 +80,7 @@ namespace Client
             if (input.Length >= SerialNumberStringLengthMin && input.Length <= SerialNumberStringLengthMax)
             {
                 long parsed;
-                CultureInfo provider = CultureInfo.CurrentCulture;
+                CultureInfo provider = CultureInfo.InvariantCulture;
                 valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
                 if (parsed < Rfid.MinHexSerialNumber || parsed > Rfid.MaxHexSerialNumber)
                 {
