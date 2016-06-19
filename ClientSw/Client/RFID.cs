@@ -73,5 +73,21 @@ namespace Client
         {
             return $"{serialNumber},{speed}";
         }
+
+        public static bool ValidateRfid(string input)
+        {
+            bool valid = false;
+            if (input.Length >= SerialNumberStringLengthMin && input.Length <= SerialNumberStringLengthMax)
+            {
+                long parsed;
+                CultureInfo provider = CultureInfo.CurrentCulture;
+                valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
+                if (parsed < Rfid.MinHexSerialNumber || parsed > Rfid.MaxHexSerialNumber)
+                {
+                    valid = false;
+                }
+            }
+            return valid;
+        }
     }
 }

@@ -142,18 +142,8 @@ namespace Client
         //check if serialnumber text is valid and messagehandler is connected, if so, make the send button available
         private void RfidSerialNumberInputValidator()
         {
-            bool valid = false;
-            string input = tbRFIDNumber.Text;
-            if (input.Length >= Rfid.SerialNumberStringLengthMin && input.Length <= Rfid.SerialNumberStringLengthMax)
-            {
-                long parsed;
-                CultureInfo provider = CultureInfo.CurrentCulture;
-                valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
-                if (parsed < Rfid.MinHexSerialNumber || parsed > Rfid.MaxHexSerialNumber)
-                {
-                    valid = false;
-                }
-            }
+            bool valid = Rfid.ValidateRfid(tbRFIDNumber.Text);
+
             lblCheckSerialString.Text = valid ? "Valid input" : "Invalid input";
             lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;
             btnAddToDatabase.Enabled = valid && messageHandler.Connected;
