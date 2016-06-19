@@ -56,7 +56,7 @@ namespace Client
                 try
                 {
                     messageHandler.SendMessage(message);
-                    AddToInfo($"Sent message:{message}, with RFID(hex):{rfid.SerialNumber}");
+                    AddToInfo($"Sent message:{message}, with RFID(hex):{rfid}");
                 }
                 catch (IOException ex)
                 {
