@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPlistener", "TCPlistener.csproj", "{50B0FB1A-A959-4929-84C1-6503EB1D2EC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpListenerTest", "..\TcpListenerTest\TcpListenerTest.csproj", "{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{50B0FB1A-A959-4929-84C1-6503EB1D2EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50B0FB1A-A959-4929-84C1-6503EB1D2EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50B0FB1A-A959-4929-84C1-6503EB1D2EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

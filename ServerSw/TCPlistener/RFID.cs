@@ -14,7 +14,6 @@ namespace TCPlistener
         public const long MinHexSerialNumber = 0x10000000; // min length = 8
         public const long MaxHexSerialNumber = 0xFFFFFFFFFFFFFF; // max length = 14
 
-
         private readonly long serialNumber;
 
         public long SerialNumber => serialNumber;

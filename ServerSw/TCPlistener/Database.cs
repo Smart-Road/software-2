@@ -83,7 +83,7 @@ namespace TCPlistener
             bool createNew = !File.Exists(databaseFilename);
 
             // Bestand bestaat niet: maak een lege database aan
-            if (createNew == true)
+            if (createNew)
             {
                 SQLiteConnection.CreateFile(databaseFilename);
 
@@ -93,62 +93,22 @@ namespace TCPlistener
             if (connection == null)
             {
                 connection = new SQLiteConnection("Data Source=" + databaseFilename + ";Version=3");
-
             }
 
             // Als we een nieuwe database gemaakt hebben, voegen we alvast wat records toe.
             // We doen dit nu pas omdat we een connection nodig hebben om te communiceren met
             // de database: vandaar dat deze code niet boven bij de CreateFile functie staat.
-            if (createNew == true)
-            {
-                CreateDummyData();
-            }
+            if (!createNew) return;
+
+            CreateTable();
+            DatabaseWrapper.CreateDummyData();
         }
 
-        private static long LongRandom(long min, long max, Random rand)
-        {
-            byte[] buf = new byte[8];
-            rand.NextBytes(buf);
-            long longRand = BitConverter.ToInt64(buf, 0);
-            return (Math.Abs(longRand % (max - min)) + min);
-        }
-
-        /// <summary>
-        /// Functie die een nieuwe tabel aanmaakt op een lege database, en deze vult met een
-        /// aantal records.
-        /// </summary>
-        private static void CreateDummyData()
+        private static void CreateTable()
         {
             OpenConnection();
-
-            List<Rfid> rfidsAdded = new List<Rfid>();
-
-            try
-            {
-                Query = "CREATE TABLE Rfids (serialNumber LONG PRIMARY KEY, speed INT, zone INT, timestamp LONG)";
-                Command.ExecuteNonQuery();
-                Random random = new Random();
-                int trycounter = 0;
-                const int amountOfRows = 1000;
-                for (int i = 0; i < amountOfRows; i++)
-                {
-                    long serialNumber = LongRandom(Rfid.MinHexSerialNumber, Rfid.MaxHexSerialNumber, random);
-                    Rfid rfid = new Rfid(serialNumber, random.Next(Rfid.MinSpeed, Rfid.MaxSpeed));
-                    int zone = random.Next(100, 500);
-                    if (!rfidsAdded.Contains(rfid))
-                    {
-                        InsertData(rfid, zone);
-                    }
-                    rfidsAdded.Add(rfid);
-                }
-                Console.WriteLine($"Extra tries needed:{trycounter - amountOfRows}");
-            }
-            catch (SQLiteException)
-            {
-                // Er is iets mis gegaan: waarschijnlijk bestond de tabel al. Voor nu is er
-                // verder geen foutafhandeling nodig.
-            }
-            Console.WriteLine("Created dummy data");
+            Query = "CREATE TABLE Rfids (serialNumber LONG PRIMARY KEY, speed INT, zone INT, timestamp LONG)";
+            Command.ExecuteNonQuery();
             CloseConnection();
         }
 

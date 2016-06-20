@@ -131,8 +131,8 @@ namespace TCPlistener
 
         private void btnLoadAllFromDb_Click(object sender, EventArgs e)
         {
-            List<Rfid> rfids = DatabaseWrapper.LoadAllFromDatabase();
-            List<Rfid> rfids2 = DatabaseWrapper.LoadZoneFromDb(120);
+            List<DatabaseEntry> databaseEntries = DatabaseWrapper.LoadAllFromDatabase();
+            List<DatabaseEntry> databaseEntries2 = DatabaseWrapper.LoadZoneFromDb(120);
         }
     }
 }
