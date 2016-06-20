@@ -47,11 +47,7 @@ namespace TcpListenerTest
             Assert.IsFalse(entry3.CheckData());
             Assert.IsFalse(entry4.CheckData());
 
-            List<DatabaseEntry> entries = new List<DatabaseEntry>();
-            entries.Add(entry);
-            entries.Add(entry2);
-            entries.Add(entry3);
-            entries.Add(entry4);
+            List<DatabaseEntry> entries = new List<DatabaseEntry> {entry, entry2, entry3, entry4};
 
             Assert.IsFalse(DatabaseEntry.CheckList(entries));
         }
