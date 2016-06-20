@@ -20,7 +20,7 @@ namespace TCPlistener
           public static List<RFID> LoadAllFromDatabase()
         {
                 // Voer een select-query uit om alle kunsten uit te lezen
-            Database.Query = "SELECT * FROM kunsten ORDER BY nummer";
+            Database.Query = "SELECT * FROM Rfids ORDER BY number";
             Database.OpenConnection();
 
             // De resultaten worden nu opgeslagen in een "reader": deze wordt in de while-loop
@@ -28,10 +28,11 @@ namespace TCPlistener
             SQLiteDataReader reader = Database.Command.ExecuteReader();
 
             // Onderstaande list bevat alle kunsten die uitgelezen worden
-            List<RFID> kunsten = new List<RFID>();
-            while (reader.Read())
-            {
-        
-          }
+            List<RFID> Rfids = new List<RFID>();
+              while (reader.Read())
+              {
+              }
+              return Rfids;
+        }
     }
 }
