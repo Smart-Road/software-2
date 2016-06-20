@@ -108,7 +108,7 @@ namespace TCPlistener
                 tbProgress.Text = "Canceled!";
             }
 
-            else if (!(e.Error == null))
+            else if (e.Error != null)
             {
                 tbProgress.Text = ("Error: " + e.Error.Message);
             }
@@ -127,6 +127,12 @@ namespace TCPlistener
         private void MessageRecieve_Tick(object sender, EventArgs e)
         {
             startwork();
+        }
+
+        private void btnLoadAllFromDb_Click(object sender, EventArgs e)
+        {
+            List<Rfid> rfids = DatabaseWrapper.LoadAllFromDatabase();
+            List<Rfid> rfids2 = DatabaseWrapper.LoadZoneFromDb(120);
         }
     }
 }

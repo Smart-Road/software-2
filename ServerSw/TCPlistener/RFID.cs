@@ -1,38 +1,85 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SQLite;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Globalization;
 
 namespace TCPlistener
 {
-    class RFID
+    /*
+     * The Rfid object holds a serial number of a chip, and a speed that is associated with it.
+     */
+    [Serializable]
+    public class Rfid
     {
-        private int nummer { get; set; }
-        private int snelheid { get; set; }
+        public const int MaxSpeed = 130;
+        public const int MinSpeed = 5;
+        public const long MinHexSerialNumber = 0x10000000; // min length = 8
+        public const long MaxHexSerialNumber = 0xFFFFFFFFFFFFFF; // max length = 14
 
-        public RFID(int Nummer, int Snelheid)
+
+        private readonly long serialNumber;
+
+        public long SerialNumber => serialNumber;
+
+        private int speed;
+        public int Speed
         {
-            nummer = Nummer;
-            snelheid = Snelheid;
+            get { return speed; }
+            set
+            {
+                if (value < MinSpeed || value > MaxSpeed)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+                speed = value;
+            }
         }
-          public static List<RFID> LoadAllFromDatabase()
+
+        public Rfid(long serialNumber, int speed)
         {
-                // Voer een select-query uit om alle kunsten uit te lezen
-            Database.Query = "SELECT * FROM Rfids ORDER BY number";
-            Database.OpenConnection();
+            if (serialNumber < MinHexSerialNumber || serialNumber > MaxHexSerialNumber)
+            {
+                throw new ArgumentException(nameof(serialNumber));
+            }
+            this.serialNumber = serialNumber;
+            this.Speed = speed;
+        }
 
-            // De resultaten worden nu opgeslagen in een "reader": deze wordt in de while-loop
-            // verderop gebruikt om nieuwe instanties van kunsten aan te maken
-            SQLiteDataReader reader = Database.Command.ExecuteReader();
+        public Rfid(string serialNumberString, int speed)
+        {
+            if (string.IsNullOrWhiteSpace(serialNumberString))
+            {
+                throw new ArgumentException(nameof(serialNumberString));
+            }
+            // method throws formatexception if string is invalid
+            long serialNr = long.Parse(serialNumberString, NumberStyles.AllowHexSpecifier);
 
-            // Onderstaande list bevat alle kunsten die uitgelezen worden
-            List<RFID> Rfids = new List<RFID>();
-              while (reader.Read())
-              {
-              }
-              return Rfids;
+            if (serialNr < MinHexSerialNumber || serialNr > MaxHexSerialNumber)
+            {
+                throw new ArgumentException(nameof(serialNr));
+            }
+            this.serialNumber = serialNr;
+            this.Speed = speed;
+        }
+
+        public override string ToString()
+        {
+            return $"{serialNumber.ToString("X8")},{speed}"; // for hexadecimal
+        }
+
+        public string ToNumberString()
+        {
+            return $"{serialNumber},{speed}";
+        }
+
+        public static bool ValidateRfid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+            long parsed;
+            CultureInfo provider = CultureInfo.InvariantCulture;
+            bool valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
+            return valid && parsed >= MinHexSerialNumber && parsed <= MaxHexSerialNumber;
         }
     }
 }

@@ -35,6 +35,7 @@
             this.Stop = new System.Windows.Forms.Button();
             this.tbProgress = new System.Windows.Forms.TextBox();
             this.MessageRecieve = new System.Windows.Forms.Timer(this.components);
+            this.btnLoadAllFromDb = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // connect
@@ -77,11 +78,24 @@
             this.MessageRecieve.Interval = 200;
             this.MessageRecieve.Tick += new System.EventHandler(this.MessageRecieve_Tick);
             // 
+            // btnLoadAllFromDb
+            // 
+            this.btnLoadAllFromDb.AutoSize = true;
+            this.btnLoadAllFromDb.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnLoadAllFromDb.Location = new System.Drawing.Point(179, 83);
+            this.btnLoadAllFromDb.Name = "btnLoadAllFromDb";
+            this.btnLoadAllFromDb.Size = new System.Drawing.Size(79, 23);
+            this.btnLoadAllFromDb.TabIndex = 8;
+            this.btnLoadAllFromDb.Text = "Load from db";
+            this.btnLoadAllFromDb.UseVisualStyleBackColor = true;
+            this.btnLoadAllFromDb.Click += new System.EventHandler(this.btnLoadAllFromDb_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Controls.Add(this.btnLoadAllFromDb);
             this.Controls.Add(this.tbProgress);
             this.Controls.Add(this.Stop);
             this.Controls.Add(this.listBox1);
@@ -101,6 +115,7 @@
         private System.Windows.Forms.Button Stop;
         private System.Windows.Forms.TextBox tbProgress;
         private System.Windows.Forms.Timer MessageRecieve;
+        private System.Windows.Forms.Button btnLoadAllFromDb;
     }
 }
 
