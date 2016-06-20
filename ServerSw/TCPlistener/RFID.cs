@@ -49,7 +49,7 @@ namespace TCPlistener
             {
                 throw new ArgumentException(nameof(serialNumberString));
             }
-            // method throws formatexception if string is invalid
+            // constructor throws formatexception if string is invalid
             long serialNr = long.Parse(serialNumberString, NumberStyles.AllowHexSpecifier);
 
             if (serialNr < MinHexSerialNumber || serialNr > MaxHexSerialNumber)
