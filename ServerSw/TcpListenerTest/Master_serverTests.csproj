@@ -6,8 +6,8 @@
     <ProjectGuid>{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TcpListenerTest</RootNamespace>
-    <AssemblyName>TcpListenerTest</AssemblyName>
+    <RootNamespace>Master_serverTest</RootNamespace>
+    <AssemblyName>Master_serverTest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -54,9 +54,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TCPlistener\TCPlistener.csproj">
+    <ProjectReference Include="..\TCPlistener\Master_server.csproj">
       <Project>{50b0fb1a-a959-4929-84c1-6503eb1d2ec4}</Project>
-      <Name>TCPlistener</Name>
+      <Name>Master_server</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

@@ -14,13 +14,13 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 
-namespace TCPlistener
+namespace Master_server
 {
-    public partial class Form1 : Form
+    public partial class MainGUI : Form
     {
         private SocketHelper helper = new SocketHelper();
         private BackgroundWorker bw = new BackgroundWorker();
-        public Form1()
+        public MainGUI()
         {
             InitializeComponent();
 

@@ -1,6 +1,6 @@
-﻿namespace TCPlistener
+﻿namespace Master_server
 {
-    partial class Form1
+    partial class MainGUI
     {
         /// <summary>
         /// Required designer variable.
