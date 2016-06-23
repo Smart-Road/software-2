@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TCPlistener
+namespace Master_server
 {
 
     public static class Database

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace TCPlistener
+namespace Master_server
 {
     /*
      * The Rfid object holds a serial number of a chip, and a speed that is associated with it.

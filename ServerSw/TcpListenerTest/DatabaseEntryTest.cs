@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TCPlistener;
+using Master_server;
 
 namespace TcpListenerTest
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Data.SQLite;
 
-namespace TCPlistener
+namespace Master_server
 {
     public static class DatabaseWrapper
     {

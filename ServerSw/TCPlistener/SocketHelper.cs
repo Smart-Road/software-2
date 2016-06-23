@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TCPlistener
+namespace Master_server
 {
     class SocketHelper
     {

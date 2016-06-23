@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TCPlistener.Properties
+namespace Master_server.Properties
 {
 
 
