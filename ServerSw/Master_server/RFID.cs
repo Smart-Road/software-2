@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq.Expressions;
 
 namespace Master_server
 {
@@ -14,21 +15,21 @@ namespace Master_server
         public const long MinHexSerialNumber = 0x10000000; // min length = 8
         public const long MaxHexSerialNumber = 0xFFFFFFFFFFFFFF; // max length = 14
 
-        private readonly long serialNumber;
+        private readonly long _serialNumber;
 
-        public long SerialNumber => serialNumber;
+        public long SerialNumber => _serialNumber;
 
-        private int speed;
+        private int _speed;
         public int Speed
         {
-            get { return speed; }
+            get { return _speed; }
             set
             {
                 if (value < MinSpeed || value > MaxSpeed)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
-                speed = value;
+                _speed = value;
             }
         }
 
@@ -38,7 +39,7 @@ namespace Master_server
             {
                 throw new ArgumentException(nameof(serialNumber));
             }
-            this.serialNumber = serialNumber;
+            this._serialNumber = serialNumber;
             this.Speed = speed;
         }
 
@@ -49,24 +50,43 @@ namespace Master_server
                 throw new ArgumentException(nameof(serialNumberString));
             }
             // constructor throws formatexception if string is invalid
-            long serialNr = long.Parse(serialNumberString, NumberStyles.AllowHexSpecifier);
+            var serialNr = long.Parse(serialNumberString, NumberStyles.AllowHexSpecifier);
 
             if (serialNr < MinHexSerialNumber || serialNr > MaxHexSerialNumber)
             {
                 throw new ArgumentException(nameof(serialNr));
             }
-            this.serialNumber = serialNr;
+            this._serialNumber = serialNr;
             this.Speed = speed;
         }
 
         public override string ToString()
         {
-            return $"{serialNumber.ToString("X8")},{speed}"; // for hexadecimal
+            return $"{_serialNumber.ToString("X8")},{_speed}"; // for hexadecimal
         }
 
         public string ToNumberString()
         {
-            return $"{serialNumber},{speed}";
+            return $"{_serialNumber},{_speed}";
+        }
+
+        public static bool GetRfid(long serialNumber, int maxSpeed, out Rfid rfid)
+        {
+            try
+            {
+                rfid = new Rfid(serialNumber, maxSpeed);
+            }
+            catch (FormatException)
+            {
+                rfid = null;
+                return false;
+            }
+            catch (ArgumentException)
+            {
+                rfid = null;
+                return false;
+            }
+            return true;
         }
 
         public static bool ValidateRfid(string input)
@@ -76,8 +96,8 @@ namespace Master_server
                 return false;
             }
             long parsed;
-            CultureInfo provider = CultureInfo.InvariantCulture;
-            bool valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
+            var provider = CultureInfo.InvariantCulture;
+            var valid = long.TryParse(input, NumberStyles.AllowHexSpecifier, provider, out parsed);
             return valid && parsed >= MinHexSerialNumber && parsed <= MaxHexSerialNumber;
         }
     }

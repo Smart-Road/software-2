@@ -16,7 +16,7 @@ namespace Master_server
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainGUI());
+            Application.Run(new MainGui());
         }
     }
 }

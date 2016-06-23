@@ -1,46 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlTypes;
 using System.Data.SQLite;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace Master_server
 {
     public static class DatabaseWrapper
     {
-
         public static List<DatabaseEntry> LoadAllFromDatabase()
         {
-            Database.Query = "SELECT * FROM Rfids";
+            Database.Query = $"SELECT * FROM {Database.TableName}";
             Database.OpenConnection();
 
-            SQLiteDataReader reader = Database.Command.ExecuteReader();
+            var reader = Database.Command.ExecuteReader();
 
-            return readDataToList(reader);
+            return ReadDataToList(reader);
         }
 
         public static List<DatabaseEntry> LoadZoneFromDb(int zone)
         {
-            Database.Query = $"SELECT * FROM Rfids WHERE zone = {zone} ";
+            Database.Query = $"SELECT * FROM {Database.TableName} WHERE {Database.Zone} = {zone} ";
             Database.OpenConnection();
 
-            SQLiteDataReader reader = Database.Command.ExecuteReader();
+            var reader = Database.Command.ExecuteReader();
 
-            return readDataToList(reader);
+            return ReadDataToList(reader);
         }
 
-        private static List<DatabaseEntry> readDataToList(SQLiteDataReader reader)
+        public static bool AddRfid(Rfid rfid, int zone)
         {
-            List<DatabaseEntry> databaseEntries = new List<DatabaseEntry>();
+            var retval = false;
+            if (zone < 1)
+            {
+                return false;
+            }
+
+            Database.OpenConnection();
+            retval = Database.InsertData(rfid, zone);
+            Database.CloseConnection();
+            return retval;
+        }
+
+        private static List<DatabaseEntry> ReadDataToList(IDataReader reader)
+        {
+            var databaseEntries = new List<DatabaseEntry>();
             while (reader.Read())
             {
-                long serialNumber = (long)reader["serialNumber"];
-                int speed = (int)reader["speed"];
+                var serialNumber = (long)reader[Database.SerialNumber];
+                var speed = (int)reader[Database.Speed];
                 long timestamp = 0;
-                int zone = (int) reader["zone"];
-                object timestampobj = reader["timestamp"];
+                var zone = (int) reader[Database.Zone];
+                var timestampobj = reader[Database.Timestamp];
                 if (timestampobj.GetType() != typeof(DBNull))
                 {
-                    timestamp = (long)reader["timestamp"];
+                    timestamp = (long) timestampobj;
                 }
                 var entry = new DatabaseEntry(serialNumber, speed, zone, timestamp);
                 databaseEntries.Add(entry);
@@ -50,9 +66,9 @@ namespace Master_server
 
         private static long LongRandom(long min, long max, Random rand)
         {
-            byte[] buf = new byte[8];
+            var buf = new byte[8];
             rand.NextBytes(buf);
-            long longRand = BitConverter.ToInt64(buf, 0);
+            var longRand = BitConverter.ToInt64(buf, 0);
             return (Math.Abs(longRand % (max - min)) + min);
         }
 
@@ -64,17 +80,17 @@ namespace Master_server
         {
             Database.OpenConnection();
 
-            List<Rfid> rfidsAdded = new List<Rfid>();
+            var rfidsAdded = new List<Rfid>();
 
             try
             {
-                Random random = new Random();
+                var random = new Random();
                 const int amountOfRows = 1000;
-                for (int i = 0; i < amountOfRows; i++)
+                for (var i = 0; i < amountOfRows; i++)
                 {
-                    long serialNumber = LongRandom(Rfid.MinHexSerialNumber, Rfid.MaxHexSerialNumber, random);
-                    Rfid rfid = new Rfid(serialNumber, random.Next(Rfid.MinSpeed, Rfid.MaxSpeed));
-                    int zone = random.Next(100, 500);
+                    var serialNumber = LongRandom(Rfid.MinHexSerialNumber, Rfid.MaxHexSerialNumber, random);
+                    var rfid = new Rfid(serialNumber, random.Next(Rfid.MinSpeed, Rfid.MaxSpeed));
+                    var zone = random.Next(100, 500);
                     if (!rfidsAdded.Contains(rfid))
                     {
                         Database.InsertData(rfid, zone);
