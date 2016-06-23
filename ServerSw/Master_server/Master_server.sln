@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Master_server", "Master_server.csproj", "{50B0FB1A-A959-4929-84C1-6503EB1D2EC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Master_serverTests", "..\TcpListenerTest\Master_serverTests.csproj", "{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Master_serverTests", "..\Master_serverTest\Master_serverTests.csproj", "{B48C2A3D-A558-4C60-BDDA-54ADAFA0CE50}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

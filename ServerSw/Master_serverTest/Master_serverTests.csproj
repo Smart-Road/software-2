@@ -54,7 +54,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TCPlistener\Master_server.csproj">
+    <ProjectReference Include="..\Master_server\Master_server.csproj">
       <Project>{50b0fb1a-a959-4929-84c1-6503eb1d2ec4}</Project>
       <Name>Master_server</Name>
     </ProjectReference>
