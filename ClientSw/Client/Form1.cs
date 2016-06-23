@@ -14,6 +14,9 @@ namespace Client
         private MessageHandler messageHandler;
         private Task connectionTask;
         private RfidManager rfidManager;
+        private IncomingConnection incomingConnection;
+
+        private const int portnumber = 13;
 
         public s()
         {
@@ -25,6 +28,8 @@ namespace Client
             messageHandler.MessageReceived += messageHandler_MessageReceived;
             rfidManager = new RfidManager();
             rfidManager.CollectionChanged += RfidManagerOnCollectionChanged;
+
+            incomingConnection = new IncomingConnection(portnumber);
         }
 
         private void RfidManagerOnCollectionChanged(object sender, EventArgs eventArgs)
@@ -85,6 +90,8 @@ namespace Client
 
         private async void btnConnect_Click(object sender, EventArgs e)
         {
+            incomingConnection.StartListening();
+
             if (connectionTask?.Status != TaskStatus.WaitingForActivation)
             {
                 string serverIp = tbServerIp.Text.Trim();

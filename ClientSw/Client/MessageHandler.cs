@@ -69,7 +69,7 @@ namespace Client
                 stream = client.GetStream();
                 Connected = true;
                 receiving = true;
-                SendMessage($"IDENTIFICATION:{zoneId}");
+                SendMessage($"ZONE:{zoneId}");
                 ListenForCommands();
             }
         }
