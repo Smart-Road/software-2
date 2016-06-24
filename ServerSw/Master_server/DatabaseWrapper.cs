@@ -30,6 +30,25 @@ namespace Master_server
             return ReadDataToList(reader);
         }
 
+        public static List<DatabaseEntry> LoadZoneAfterTimeStamp(int zone, long timestamp)
+        {
+            Database.Query = $"SELECT * FROM {Database.TableName} WHERE {Database.Zone} = {zone} AND {Database.Timestamp} > {timestamp} ";
+            Database.OpenConnection();
+
+            var reader = Database.Command.ExecuteReader();
+
+            return ReadDataToList(reader);
+        }
+
+        public static bool AddEntry(DatabaseEntry entry)
+        {
+            if (entry == null || !entry.CheckData()) return false;
+            Database.OpenConnection();
+            var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed), entry.Zone);
+            Database.CloseConnection();
+            return retval;
+        }
+
         public static bool AddRfid(Rfid rfid, int zone)
         {
             var retval = false;

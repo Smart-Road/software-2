@@ -38,9 +38,8 @@ namespace Master_server
             return entries.All(databaseEntry => databaseEntry.CheckData()); // check all the entries for validity
         }
 
-        public override string ToString()
-        {
-            return $"{SerialNumber},{Speed},{Zone},{Timestamp}";
-        }
+        public override string ToString() => $"{SerialNumber},{Speed},{Zone},{Timestamp}";
+
+        public string ToServerString() => $"{SerialNumber},{Speed},{Timestamp}";
     }
 }

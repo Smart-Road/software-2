@@ -50,7 +50,7 @@
             this.ClientSize = new System.Drawing.Size(284, 261);
             this.Controls.Add(this.lbInfo);
             this.Name = "MainGui";
-            this.Text = "Form1";
+            this.Text = "Master-server";
             this.ResumeLayout(false);
 
         }

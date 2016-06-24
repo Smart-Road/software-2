@@ -52,6 +52,16 @@ namespace Master_server
                         messageReceiver.SendMessage($"{Command.ERROR}:{Command.NO_ZONE_SET}");
                         return;
                     }
+                    long timestamp;
+                    if (!long.TryParse(sParameter, out timestamp))
+                    {
+                        MainGui.Main.AddInfoToLb($"Could not parse timestamp {sParameter} at {command}");
+                    }
+                    List<DatabaseEntry> entriesAfterTimestamp = DatabaseWrapper.LoadZoneAfterTimeStamp(messageReceiver.Zone, timestamp);
+                    foreach (var VARIABLE in DatabaseWrapper.)
+                    {
+                        
+                    }
                     break;
                 case Command.ADDRFID:
                     if (messageReceiver.Zone == 0)
