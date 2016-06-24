@@ -1,6 +1,6 @@
 ﻿namespace Client
 {
-    partial class s
+    partial class MainGui
     {
         /// <summary>
         /// Required designer variable.
