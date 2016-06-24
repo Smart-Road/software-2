@@ -82,7 +82,6 @@ namespace Master_server
                 try
                 {
                     var byteIn = _stream.ReadByte();
-                    Console.WriteLine($"read byte:{byteIn}");
                     if (byteIn < 0)
                     {
                         e.Result = new ConnectionLostEventArgs();

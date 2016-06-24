@@ -17,7 +17,6 @@ namespace Master_server
             _accepter = new ConnectionAccepter(PortNumber, this);
             _accepter.StartAccepting();
             Main = this;
-            Database.PrepareConnection();
         }
 
         private void btnLoadAllFromDb_Click(object sender, EventArgs e)

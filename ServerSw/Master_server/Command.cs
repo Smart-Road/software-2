@@ -18,6 +18,7 @@ namespace Master_server
         ADDRFID, 
         CHANGERFID,
         ERROR,
-        NO_ZONE_SET
+        NO_ZONE_SET,
+        INVALID_AMOUNT_OF_PARAMS
     }
 }

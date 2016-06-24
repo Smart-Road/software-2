@@ -15,11 +15,15 @@ namespace Master_server
         public const string Timestamp = "timestamp";
 
         // De bestandsnaam voor de database
-        private static readonly string databaseFilename = "Database.sqlite";
         // Variabele voor het opzetten van de verbinding
         private static SQLiteConnection _connection;
         // Variable waar de SQL-commandos tijdelijk in opgeslagen worden
         private static SQLiteCommand _command;
+
+        /// <summary>
+        /// Haal de bestandsnaam op van de database.
+        /// </summary>
+        public static string DatabaseFilename { get; } = "Rfid-db.sqlite";
 
         /// <summary>
         /// Stel de SQL query in die uitgevoerd moet gaan worden.
@@ -38,29 +42,20 @@ namespace Master_server
         /// <summary>
         /// Haalt het command-object op waarmee queries uitgevoerd kunnen worden.
         /// </summary>
-        public static SQLiteCommand Command
-        {
-            get { return _command; }
-        }
-
-        /// <summary>
-        /// Haal de bestandsnaam op van de database.
-        /// </summary>
-        public static string DatabaseFilename
-        {
-            get { return databaseFilename; }
-        }
+        public static SQLiteCommand Command => _command;
 
         /// <summary>
         /// Open de verbinding met de database
         /// </summary>
         public static void OpenConnection()
         {
-            // Controleer of de verbinding niet al open is
-            if (_connection.State != ConnectionState.Open)
+            if (_connection == null)
             {
-                _connection.Open();
+                PrepareConnection();
             }
+            // Controleer of de verbinding niet al open is
+            if (_connection?.State == ConnectionState.Open) return;
+            _connection?.Open();
         }
 
         /// <summary>
@@ -83,19 +78,19 @@ namespace Master_server
         public static void PrepareConnection()
         {
             // Controleer of we een nieuwe database met dummy data moeten aanmaken
-            var createNew = !File.Exists(databaseFilename);
+            var createNew = !File.Exists(DatabaseFilename);
 
             // Bestand bestaat niet: maak een lege database aan
             if (createNew)
             {
-                SQLiteConnection.CreateFile(databaseFilename);
+                SQLiteConnection.CreateFile(DatabaseFilename);
 
             }
 
             // Zet een verbinding op met de database
             if (_connection == null)
             {
-                _connection = new SQLiteConnection("Data Source=" + databaseFilename + ";Version=3");
+                _connection = new SQLiteConnection("Data Source=" + DatabaseFilename + ";Version=3");
             }
 
             // Als we een nieuwe database gemaakt hebben, voegen we alvast wat records toe.
@@ -109,8 +104,8 @@ namespace Master_server
 
         private static void CreateTable()
         {
-            OpenConnection();
             Query = $"CREATE TABLE {TableName} ({SerialNumber} LONG PRIMARY KEY, {Speed} INT, {Zone} INT, {Timestamp} LONG)";
+            OpenConnection();
             Command.ExecuteNonQuery();
             CloseConnection();
         }

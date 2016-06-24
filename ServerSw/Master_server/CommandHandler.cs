@@ -63,7 +63,11 @@ namespace Master_server
                     
                     // parse data
                     string[] parameters = sParameter.Split(',');
-                    if (parameters.Length != 2) return;
+                    if (parameters.Length != 2)
+                    {
+                        messageReceiver.SendMessage($"{Command.ERROR},{Command.INVALID_AMOUNT_OF_PARAMS}");
+                        return;
+                    }
                     long serialNumber;
                     int maxSpeed;
                     if (!long.TryParse(parameters[0], out serialNumber) || !int.TryParse(parameters[1], out maxSpeed))
