@@ -13,6 +13,7 @@ namespace Client
         private TcpClient _client;
         private IPAddress _ipAddress;
         private int _portNumber;
+        private int _zone;
 
         public event ConnectionUpdateDelegate ConnectionUpdate;
         public delegate void ConnectionUpdateDelegate(object sender, ConnectionUpdateEventArgs e);
@@ -30,18 +31,25 @@ namespace Client
                 OnConnectionUpdate(new ConnectionUpdateEventArgs(_connected));
             }
         }
-        public OutgoingConnection(string sIpAdress, int portNumber)
+        public OutgoingConnection(string sIpAdress, int portNumber, int zone)
         {
             _bwConnect.DoWork += _bwConnect_DoWork;
             _bwConnect.RunWorkerCompleted += _bwConnect_RunWorkerCompleted;
             _client = new TcpClient();
             _ipAddress = IPAddress.Parse(sIpAdress);
             _portNumber = portNumber;
+
+            _zone = zone;
         }
 
         private void _bwConnect_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             Connected = (bool)e.Result;
+            if (Connected)
+            {
+                SendMessage($"{Command.ZONE}:{_zone}");
+            }
+            
         }
 
         private void _bwConnect_DoWork(object sender, DoWorkEventArgs e)

@@ -10,14 +10,12 @@ namespace Client
     {
         public readonly long SerialNumber;
         public readonly int Speed;
-        public readonly int Zone;
         public readonly long Timestamp;
 
-        public DatabaseEntry(long serialNumber, int speed, int zone, long timestamp)
+        public DatabaseEntry(long serialNumber, int speed, long timestamp)
         {
             SerialNumber = serialNumber;
             Speed = speed;
-            Zone = zone;
             Timestamp = timestamp;
         }
 
@@ -27,7 +25,6 @@ namespace Client
                    SerialNumber <= Rfid.MaxHexSerialNumber &&
                    Speed >= Rfid.MinSpeed &&
                    Speed <= Rfid.MaxSpeed &&
-                   Zone > -1 &&
                    Timestamp > 0;
         }
 

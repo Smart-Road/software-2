@@ -95,7 +95,7 @@ namespace Client
             {
                 try
                 {
-                    outgoingConnection = new OutgoingConnection(tbServerIp.Text, portnumber);
+                    outgoingConnection = new OutgoingConnection(tbServerIp.Text, portnumber, (int)nudZoneId.Value);
                     outgoingConnection.ConnectionUpdate += OutgoingConnection_ConnectionUpdate;
                     outgoingConnection.MakeConnection();
                 }
@@ -113,7 +113,11 @@ namespace Client
         private void OutgoingConnection_ConnectionUpdate(object sender, ConnectionUpdateEventArgs e)
         {
             AddToInfo(e.ConnectionState ? "Got connection!" : "Got no connection :(");
-            btnConnect.Text = e.ConnectionState ? "Disconnect" : "Connect";
+            btnConnect.Invoke(new EventHandler(delegate
+            {
+                btnConnect.Text = e.ConnectionState ? "Disconnect" : "Connect";
+                tbRFIDNumber_TextChanged(tbRFIDNumber, null);
+            }));
         }
 
         private void tbRFIDNumber_TextChanged(object sender, EventArgs e)

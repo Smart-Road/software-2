@@ -30,7 +30,6 @@ namespace Client
         public delegate void ClientDisconnectedDelegate(object sender, ConnectionLostEventArgs e);
 
         public event ClientDisconnectedDelegate ClientDisconnected;
-        public int Zone { get; set; } = 0;
 
         private enum State
         {
@@ -108,7 +107,7 @@ namespace Client
                                 _received = string.Empty;
                                 _state = State.Waiting;
                                 worker.ReportProgress(0,
-                                    new MessageReceivedEventArgs(_lastCommand, _stream, Zone));
+                                    new MessageReceivedEventArgs(_lastCommand, _stream));
                             }
                             if (_received.Length > MaxCommandLength)
                             {
@@ -190,13 +189,11 @@ namespace Client
     {
         public string Message { get; set; }
         public NetworkStream NetworkStream { get; set; }
-        public int Zone { get; set; }
 
-        public MessageReceivedEventArgs(string message, NetworkStream stream, int zone)
+        public MessageReceivedEventArgs(string message, NetworkStream stream)
         {
             Message = message;
             NetworkStream = stream;
-            Zone = zone;
         }
     }
 
