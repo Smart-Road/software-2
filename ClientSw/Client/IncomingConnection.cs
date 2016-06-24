@@ -124,7 +124,7 @@ namespace Client
                                 throw new ArgumentException(nameof(state));
                         }
                     }
-                    Thread.Sleep(1);
+                    Thread.Sleep(1);                    
                 }
             }
         }

@@ -10,7 +10,7 @@ namespace Client
 {
     public static class Database
     {
-        private static readonly string dbFileName = "[rootlocation]Database.sqlite";
+        private static readonly string dbFileName = "Database.sqlite";
         private static SQLiteConnection connection;
         private static SQLiteCommand command;
 
@@ -63,10 +63,18 @@ namespace Client
                 connection = new SQLiteConnection("Data Source=" + dbFileName + ";Version=3");
             }
 
-            if (createNew)
-            {
-                CreateDummyData();
-            }
+            if (!createNew) return;
+
+            CreateTable();
+            //DatabaseWrapper met dummydata?
+        }
+
+        private static void CreateTable()
+        {
+            OpenConnection();
+            Query = "CREATE TABLE Rfids (serialNumber LONG PRIMARY KEY, speed INT, zone INT, timestamp LONG)";
+            Command.ExecuteNonQuery();
+            CloseConnection();
         }
 
         private static void CreateDummyData()
@@ -84,6 +92,26 @@ namespace Client
             }
 
             CloseConnection();
+        }
+
+        public static bool InsertData(Rfid rfid, int zone, long timestamp = -1)
+        {
+            bool retval;
+
+            try
+            {
+                var longDate = timestamp == -1 ? DateTime.UtcNow.ToFileTimeUtc() : timestamp;
+                Query = $"INSERT INTO Rfids (serialNumber, speed, zone, timestamp) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {zone}, {longDate})";
+                Command.ExecuteNonQuery();
+                retval = true;
+            }
+            catch (SQLiteException ex)
+            {
+                Console.WriteLine(ex);
+                retval = false;
+            }
+
+            return retval;
         }
     }
 }
