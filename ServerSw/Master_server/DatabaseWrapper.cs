@@ -51,14 +51,13 @@ namespace Master_server
 
         public static bool AddRfid(Rfid rfid, int zone)
         {
-            var retval = false;
             if (zone < 1)
             {
                 return false;
             }
 
             Database.OpenConnection();
-            retval = Database.InsertData(rfid, zone);
+            var retval = Database.InsertData(rfid, zone);
             Database.CloseConnection();
             return retval;
         }

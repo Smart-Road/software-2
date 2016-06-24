@@ -12,6 +12,8 @@ namespace Master_server
     {
         private readonly List<MessageReceiver> _messageReceivers = new List<MessageReceiver>();
 
+        private const string SyncDelimiter = ";";
+
         public void AddEntry(MessageReceiver msgReceiver)
         {
             _messageReceivers.Add(msgReceiver);
@@ -46,22 +48,9 @@ namespace Master_server
             switch (command)
             {
                 case Command.SYNCDB:
-                    if (messageReceiver.Zone == 0)
-                    {
-                        Console.WriteLine("Zone is not set");
-                        messageReceiver.SendMessage($"{Command.ERROR}:{Command.NO_ZONE_SET}");
-                        return;
-                    }
-                    long timestamp;
-                    if (!long.TryParse(sParameter, out timestamp))
-                    {
-                        MainGui.Main.AddInfoToLb($"Could not parse timestamp {sParameter} at {command}");
-                    }
-                    List<DatabaseEntry> entriesAfterTimestamp = DatabaseWrapper.LoadZoneAfterTimeStamp(messageReceiver.Zone, timestamp);
-                    foreach (var VARIABLE in DatabaseWrapper.)
-                    {
-                        
-                    }
+                    MainGui.Main.AddInfoToLb(SyncDb(messageReceiver, sParameter)
+                        ? "Syncing db succeeded" :
+                        "Syncing db failed");
                     break;
                 case Command.ADDRFID:
                     if (messageReceiver.Zone == 0)
@@ -70,7 +59,7 @@ namespace Master_server
                         messageReceiver.SendMessage($"{Command.ERROR}:{Command.NO_ZONE_SET}");
                         return;
                     }
-                    
+
                     // parse data
                     string[] parameters = sParameter.Split(',');
                     if (parameters.Length != 2)
@@ -135,5 +124,38 @@ namespace Master_server
             parameter = msgs[1];
             return true;
         }
+
+        private static bool SyncDb(MessageReceiver messageReceiver, string sParameter)
+        {
+            if (messageReceiver.Zone == 0)
+            {
+                Console.WriteLine("Zone is not set");
+                messageReceiver.SendMessage($"{Command.ERROR}:{Command.NO_ZONE_SET}");
+                return false;
+            }
+            long timestamp;
+            if (!long.TryParse(sParameter, out timestamp))
+            {
+                MainGui.Main.AddInfoToLb($"Could not parse timestamp {sParameter}");
+                return false;
+            }
+            var entriesAfterTimestamp = DatabaseWrapper.LoadZoneAfterTimeStamp(messageReceiver.Zone, timestamp);
+            string syncmessage = $"{Command.SYNC}:";
+            var length = entriesAfterTimestamp.Count;
+            var counter = 0;
+            foreach (var databaseEntry in entriesAfterTimestamp)
+            {
+                syncmessage += databaseEntry.ToServerString();
+                if (counter != length - 1)
+                {
+                    syncmessage += SyncDelimiter;
+                }
+                counter++;
+            }
+            messageReceiver.SendMessage(syncmessage);
+            return true;
+        }
     }
+
+
 }

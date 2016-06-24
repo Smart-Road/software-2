@@ -115,7 +115,8 @@ namespace Master_server
         {
             try
             {
-                var longDate = timestamp < 0 ? DateTime.UtcNow.ToFileTimeUtc() : timestamp;
+                var longDate = timestamp < 0 ? ConvertToTimestamp(DateTime.Now) : timestamp;
+                Console.WriteLine(longDate);
                 Query = $"INSERT INTO {TableName} ({SerialNumber}, {Speed}, {Zone}, {Timestamp}) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {zone}, {longDate})";
                 Command.ExecuteNonQuery();
                 return true;
@@ -126,6 +127,16 @@ namespace Master_server
                 MainGui.Main.AddInfoToLb($"SQL exception: {ex.Message}");
                 return false;
             }
+        }
+
+        private static long ConvertToTimestamp(DateTime value)
+        {
+            //create Timespan by subtracting the value provided from
+            //the Unix Epoch
+            TimeSpan span = (value - new DateTime(1970, 1, 1, 0, 0, 0, 0).ToLocalTime());
+
+            //return the total seconds (which is a UNIX timestamp)
+            return (long)span.TotalSeconds;
         }
     }
 }
