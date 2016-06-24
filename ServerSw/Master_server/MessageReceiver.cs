@@ -87,7 +87,7 @@ namespace Master_server
                         e.Result = new ConnectionLostEventArgs();
                         return;
                     }
-                    byte[] bytes = { (byte)byteIn };
+                    byte[] bytes = {(byte) byteIn};
                     var incoming = Encoding.ASCII.GetChars(bytes);
                     switch (_state)
                     {
@@ -119,6 +119,13 @@ namespace Master_server
                         default:
                             throw new ArgumentException(nameof(_state));
                     }
+                }
+                catch (IOException ex)
+                {
+                    _receiving = false;
+                    Console.WriteLine(ex);
+                    e.Result = new ConnectionLostEventArgs();
+                    return;
                 }
                 catch (ObjectDisposedException ex)
                 {
