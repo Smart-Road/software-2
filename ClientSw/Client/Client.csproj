@@ -51,6 +51,8 @@
     <Compile Include="CommandHandler.cs" />
     <Compile Include="ConnectionAccepter.cs" />
     <Compile Include="Database.cs" />
+    <Compile Include="DatabaseEntry.cs" />
+    <Compile Include="DatabaseWrapper.cs" />
     <Compile Include="MainGui.cs">
       <SubType>Form</SubType>
     </Compile>

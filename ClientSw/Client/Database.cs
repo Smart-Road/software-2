@@ -1,117 +1,131 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+using System.Data;
 using System.Data.SQLite;
+using System.IO;
 
 namespace Client
 {
+
     public static class Database
     {
-        private static readonly string dbFileName = "Database.sqlite";
-        private static SQLiteConnection connection;
-        private static SQLiteCommand command;
+        public const string TableName = "Rfids";
+        public const string SerialNumber = "serialNumber";
+        public const string Speed = "speed";
+        public const string Timestamp = "timestamp";
 
+        // De bestandsnaam voor de database
+        // Variabele voor het opzetten van de verbinding
+        private static SQLiteConnection _connection;
+        // Variable waar de SQL-commandos tijdelijk in opgeslagen worden
+        private static SQLiteCommand _command;
+
+        /// <summary>
+        /// Haal de bestandsnaam op van de database.
+        /// </summary>
+        public static string DatabaseFilename { get; } = "Rfid-db.sqlite";
+
+        /// <summary>
+        /// Stel de SQL query in die uitgevoerd moet gaan worden.
+        /// </summary>
         public static string Query
         {
             set
             {
+                // Zorg ervoor dat er een verbinding gemaakt kan worden
                 PrepareConnection();
-                command = new SQLiteCommand(value, connection);
+                // Stel het SQL commando in met de gegeven query
+                _command = new SQLiteCommand(value, _connection);
             }
         }
 
-        public static SQLiteCommand Command
-        {
-            get { return command; }
-        }
+        /// <summary>
+        /// Haalt het command-object op waarmee queries uitgevoerd kunnen worden.
+        /// </summary>
+        public static SQLiteCommand Command => _command;
 
-        public static string DbFileName
-        {
-            get { return dbFileName; }
-        }
-
+        /// <summary>
+        /// Open de verbinding met de database
+        /// </summary>
         public static void OpenConnection()
         {
-            if(connection.State != System.Data.ConnectionState.Open)
+            if (_connection == null)
             {
-                connection.Open();
+                PrepareConnection();
             }
+            // Controleer of de verbinding niet al open is
+            if (_connection?.State == ConnectionState.Open) return;
+            _connection?.Open();
         }
 
+        /// <summary>
+        /// Sluit de verbinding met de database
+        /// </summary>
         public static void CloseConnection()
         {
-            if(connection.State != System.Data.ConnectionState.Closed)
+            // Controleer of de verbinding niet al gesloten is
+            if (_connection.State != ConnectionState.Closed)
             {
-                connection.Close();
+                _connection.Close();
             }
         }
 
+        /// <summary>
+        /// Controleert of de database al bestaat. Zo niet, wordt deze aangemaakt
+        /// en gevuld met wat dummy data. Daarnaast wordt altijd de connectie opgezet
+        /// met de database indien deze nog niet opgezet was.
+        /// </summary>
         public static void PrepareConnection()
         {
-            bool createNew = !File.Exists(@"[rootlocation]Database.sqlite");
+            // Controleer of we een nieuwe database met dummy data moeten aanmaken
+            var createNew = !File.Exists(DatabaseFilename);
 
-            if(createNew)
+            // Bestand bestaat niet: maak een lege database aan
+            if (createNew)
             {
-                SQLiteConnection.CreateFile(dbFileName);
+                SQLiteConnection.CreateFile(DatabaseFilename);
+
             }
 
-            if(connection == null)
+            // Zet een verbinding op met de database
+            if (_connection == null)
             {
-                connection = new SQLiteConnection("Data Source=" + dbFileName + ";Version=3");
+                _connection = new SQLiteConnection("Data Source=" + DatabaseFilename + ";Version=3");
             }
 
+            // Als we een nieuwe database gemaakt hebben, voegen we alvast wat records toe.
+            // We doen dit nu pas omdat we een connection nodig hebben om te communiceren met
+            // de database: vandaar dat deze code niet boven bij de CreateFile functie staat.
             if (!createNew) return;
 
             CreateTable();
-            //DatabaseWrapper met dummydata?
+            //DatabaseWrapper.CreateDummyData();
         }
 
         private static void CreateTable()
         {
+            Query = $"CREATE TABLE {TableName} ({SerialNumber} LONG PRIMARY KEY, {Speed} INT, {Timestamp} LONG)";
             OpenConnection();
-            Query = "CREATE TABLE Rfids (serialNumber LONG PRIMARY KEY, speed INT, zone INT, timestamp LONG)";
             Command.ExecuteNonQuery();
             CloseConnection();
         }
 
-        private static void CreateDummyData()
+        // do not forget to open and close the database when using this method
+        public static bool InsertData(Rfid rfid, long timestamp = -1)
         {
-            OpenConnection();
-
             try
             {
-                Query = "CREATE TABLE RIFDS (Timestamp INT PRIMARY KEY, Nummer varchar(30), Snelheid INT)";
+                var longDate = timestamp < 0 ? DateTime.UtcNow.ToFileTimeUtc() : timestamp;
+                Query = $"INSERT INTO {TableName} ({SerialNumber}, {Speed}, {Timestamp}) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {longDate})";
                 Command.ExecuteNonQuery();
-            }
-            catch(SQLiteException)
-            {
-
-            }
-
-            CloseConnection();
-        }
-
-        public static bool InsertData(Rfid rfid, int zone, long timestamp = -1)
-        {
-            bool retval;
-
-            try
-            {
-                var longDate = timestamp == -1 ? DateTime.UtcNow.ToFileTimeUtc() : timestamp;
-                Query = $"INSERT INTO Rfids (serialNumber, speed, zone, timestamp) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {zone}, {longDate})";
-                Command.ExecuteNonQuery();
-                retval = true;
+                return true;
             }
             catch (SQLiteException ex)
             {
                 Console.WriteLine(ex);
-                retval = false;
+                MainGui.Main.AddToInfo($"SQL exception: {ex.Message}");
+                return false;
             }
-
-            return retval;
         }
     }
 }
+

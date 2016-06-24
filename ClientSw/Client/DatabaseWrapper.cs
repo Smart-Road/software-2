@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
+using System.Data.SQLite;
 
 namespace Client
 {
@@ -14,36 +16,34 @@ namespace Client
             Database.Query = "SELECT * FROM Rfids";
             Database.OpenConnection();
 
-            SQLiteDataReader reader = Database.Command.ExecuteReader();
+            IDataReader reader = Database.Command.ExecuteReader();
 
-            return readDataToList(reader);
+            return ReadDataToList(reader);
         }
 
-        public static List<DatabaseEntry> LoadZoneFromDb(int zone)
+        public static bool AddEntry(DatabaseEntry entry)
         {
-            Database.Query = $"SELECT * FROM Rfids WHERE zone = {zone} ";
+            if (entry == null || !entry.CheckData()) return false;
             Database.OpenConnection();
-
-            SQLiteDataReader reader = Database.Command.ExecuteReader();
-
-            return readDataToList(reader);
+            var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed));
+            Database.CloseConnection();
+            return retval;
         }
 
-        private static List<DatabaseEntry> readDataToList(SQLiteDataReader reader)
+        private static List<DatabaseEntry> ReadDataToList(IDataReader reader)
         {
-            List<DatabaseEntry> databaseEntries = new List<DatabaseEntry>();
+            var databaseEntries = new List<DatabaseEntry>();
             while (reader.Read())
             {
-                long serialNumber = (long)reader["serialNumber"];
-                int speed = (int)reader["speed"];
+                var serialNumber = (long)reader[Database.SerialNumber];
+                var speed = (int)reader[Database.Speed];
                 long timestamp = 0;
-                int zone = (int)reader["zone"];
-                object timestampobj = reader["timestamp"];
+                var timestampobj = reader[Database.Timestamp];
                 if (timestampobj.GetType() != typeof(DBNull))
                 {
-                    timestamp = (long)reader["timestamp"];
+                    timestamp = (long)timestampobj;
                 }
-                var entry = new DatabaseEntry(serialNumber, speed, zone, timestamp);
+                var entry = new DatabaseEntry(serialNumber, speed, timestamp);
                 databaseEntries.Add(entry);
             }
             return databaseEntries;

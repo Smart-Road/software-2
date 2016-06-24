@@ -8,6 +8,7 @@ namespace Client
 {
     public enum Command
     {
-        SYNC
+        SYNC,
+        ZONE
     }
 }
