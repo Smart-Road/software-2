@@ -13,8 +13,7 @@ namespace Client
     public partial class MainGui : Form
     {
         private ConnectionAccepter connectionAccepter;
-        private RfidManager rfidManager;
-        private OutgoingConnection outgoingConnection;
+        public OutgoingConnection OutgoingConnection { get; private set; }
 
         private const int portnumber = 13;
 
@@ -28,18 +27,7 @@ namespace Client
 
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
-            rfidManager = new RfidManager();
-            rfidManager.CollectionChanged += RfidManagerOnCollectionChanged;
             Main = this;
-        }
-
-        private void RfidManagerOnCollectionChanged(object sender, EventArgs eventArgs)
-        {
-            lbRfids.Items.Clear();
-            foreach (var rfid in rfidManager.Rfids)
-            {
-                lbRfids.Items.Add(rfid);
-            }
         }
 
         private void messageHandler_MessageReceived(object sender, MessageReceivedEventArgs e)
@@ -55,13 +43,13 @@ namespace Client
             int speed = Convert.ToInt32(nudRFIDSpeed.Value);
 
             if (speed >= Rfid.MinSpeed && speed <= Rfid.MaxSpeed && !string.IsNullOrWhiteSpace(serialNumber) &&
-                outgoingConnection != null)
+                OutgoingConnection != null)
             {
                 Rfid rfid = new Rfid(serialNumber, speed);
-                string message = $"ADDRFID:{rfid.ToNumberString()}";
+                string message = $"{Command.ADDRFID}:{rfid.ToNumberString()}";
                 try
                 {
-                    outgoingConnection.SendMessage(message);
+                    OutgoingConnection.SendMessage(message);
                     AddToInfo($"Sent message:{message}, with RFID(hex):{rfid}");
                 }
                 catch (IOException ex)
@@ -69,18 +57,18 @@ namespace Client
                     Console.WriteLine(ex);
                     AddToInfo("Network error");
                 }
-                // for now, just add. TODO: Wait for server response before adding to own db
-                rfidManager.AddRfid(rfid);
             }
-            else if (outgoingConnection == null)
+            else if (OutgoingConnection == null)
             {
                 AddToInfo("Not yet connected, could not send command.");
             }
+
+            OutgoingConnection?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
         }
 
         private void btnGetListOfRFID_Click(object sender, EventArgs e)
         {
-            RfidManager rfidManager = new RfidManager();
+            OutgoingConnection?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
         }
 
 
@@ -91,13 +79,13 @@ namespace Client
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (!outgoingConnection?.Connected ?? true)
+            if (!OutgoingConnection?.Connected ?? true)
             {
                 try
                 {
-                    outgoingConnection = new OutgoingConnection(tbServerIp.Text, portnumber, (int)nudZoneId.Value);
-                    outgoingConnection.ConnectionUpdate += OutgoingConnection_ConnectionUpdate;
-                    outgoingConnection.MakeConnection();
+                    OutgoingConnection = new OutgoingConnection(tbServerIp.Text, portnumber, (int)nudZoneId.Value);
+                    OutgoingConnection.ConnectionUpdate += OutgoingConnection_ConnectionUpdate;
+                    OutgoingConnection.MakeConnection();
                 }
                 catch (FormatException)
                 {
@@ -105,8 +93,8 @@ namespace Client
                 }
             } else
             {
-                outgoingConnection?.Disconnect();
-                outgoingConnection = null;
+                OutgoingConnection?.Disconnect();
+                OutgoingConnection = null;
             }
         }
 
@@ -126,7 +114,7 @@ namespace Client
             var valid = Rfid.ValidateRfid(textBox.Text);
             lblCheckSerialString.Text = valid ? "Valid input" : "Invalid input";
             lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;
-            btnAddToDatabase.Enabled = valid && (outgoingConnection?.Connected ?? false);
+            btnAddToDatabase.Enabled = valid && (OutgoingConnection?.Connected ?? false);
         }
 
         public void AddToInfo(string message)

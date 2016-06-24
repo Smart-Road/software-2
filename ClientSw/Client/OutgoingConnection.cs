@@ -5,7 +5,7 @@ using System;
 
 namespace Client
 {
-    class OutgoingConnection
+    public class OutgoingConnection
     {
         private BackgroundWorker _bwConnect = new BackgroundWorker();
         private CommandHandler _commandHandler = new CommandHandler();
@@ -98,6 +98,7 @@ namespace Client
 
         public void SendMessage(string message)
         {
+            Console.WriteLine(message);
             _messageReceiver?.SendMessage(message);
         }
 

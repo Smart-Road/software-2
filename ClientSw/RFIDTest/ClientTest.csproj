@@ -52,7 +52,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="RFIDManagerTest.cs" />
     <Compile Include="RFIDTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

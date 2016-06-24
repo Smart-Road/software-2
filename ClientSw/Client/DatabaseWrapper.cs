@@ -10,6 +10,27 @@ namespace Client
 {
     public static class DatabaseWrapper
     {
+        public static int GetSpeedFromDb(long serialNumber)
+        {
+            Database.Query = $"SELECT {Database.Speed} FROM {Database.TableName} WHERE {Database.SerialNumber} = {serialNumber}";
+            Database.OpenConnection();
+            IDataReader reader = Database.Command.ExecuteReader();
+
+            int speed = -1;
+
+            if (reader.Read())
+            {
+                if (reader[0] is DBNull)
+                {
+                    // not found
+                } else
+                {
+                    speed = (int)reader[0];
+                }
+            }
+            Database.CloseConnection();
+            return speed;
+        }
 
         public static List<DatabaseEntry> LoadAllFromDatabase()
         {
@@ -30,6 +51,28 @@ namespace Client
             return retval;
         }
 
+        public static long GetLatestTimestamp()
+        {
+            Database.Query = $"SELECT MAX({Database.Timestamp}) FROM {Database.TableName}";
+            Database.OpenConnection();
+            IDataReader reader = Database.Command.ExecuteReader();
+
+            long timestamp = 0;
+            if (reader.Read() && reader.FieldCount == 1)
+            {
+                if (reader[0] is DBNull)
+                {
+                    // dont do anything
+                } else
+                {
+                    timestamp = (long)reader[0];
+                }
+            }
+            Database.CloseConnection();
+
+            return timestamp;
+        }
+
         private static List<DatabaseEntry> ReadDataToList(IDataReader reader)
         {
             var databaseEntries = new List<DatabaseEntry>();
@@ -46,6 +89,7 @@ namespace Client
                 var entry = new DatabaseEntry(serialNumber, speed, timestamp);
                 databaseEntries.Add(entry);
             }
+            Database.CloseConnection();
             return databaseEntries;
         }
 

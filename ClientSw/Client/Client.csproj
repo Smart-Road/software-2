@@ -64,7 +64,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rfid.cs" />
-    <Compile Include="RfidManager.cs" />
     <Compile Include="StreamAndMessage.cs" />
     <EmbeddedResource Include="MainGui.resx">
       <DependentUpon>MainGui.cs</DependentUpon>

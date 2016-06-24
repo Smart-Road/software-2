@@ -28,11 +28,13 @@ namespace Client
         {
             string sCommand;
             string sParameter;
+
             if (!ParseMessage(e.Message, out sCommand, out sParameter))
             {
                 MainGui.Main.AddToInfo($"Could not parse command: ({e.Message})");
                 return;
             }
+            Console.WriteLine(sParameter);
             Command command;
             if (!Enum.TryParse(sCommand, out command))
             {
@@ -43,47 +45,66 @@ namespace Client
             if (messageReceiver == null) return;
             switch (command)
             {
-                case Command.SYNC:
-                    string[] databaseEntries = sParameter.Split(';');
-                    int entriesAdded = 0;
-                    foreach (string databaseEntry in databaseEntries)
+                case Command.GETSPEED:
                     {
-                       string[] fields = databaseEntry.Split(',');
-                       if(fields.Length == 3)
+                        long serialNumber;
+                        if (!long.TryParse(sParameter, out serialNumber))
                         {
-                            string sSerialNumber = fields[0];
-                            string sSpeed = fields[1];
-                            string sTimeStamp = fields[2];
-                            long serialNumber;
-                            int speed;
-                            long timestamp;
-                            if(!long.TryParse(sSerialNumber, out serialNumber))
-                            {
-                                MainGui.Main.AddToInfo("Serialnumber is not valid");
-                                return;
-                            }
-
-                            if(!int.TryParse(sSpeed, out speed))
-                            {
-                                MainGui.Main.AddToInfo("Speed is not valid");
-                                return;
-                            }
-
-                            if(!long.TryParse(sTimeStamp, out timestamp))
-                            {
-                                MainGui.Main.AddToInfo("Timestamp is not valid");
-                                return;
-                            }
-                            DatabaseEntry entry = new DatabaseEntry(serialNumber, speed, timestamp);
-                            DatabaseWrapper.AddEntry(entry);
-                            if (DatabaseWrapper.AddEntry(entry))
-                            {
-                                entriesAdded += 1;
-                                
-                            }
+                            MainGui.Main.AddToInfo("Invalid parameter at getspeed received");
+                        }
+                        int speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
+                        if (speed < 0)
+                        {
+                            MainGui.Main.OutgoingConnection?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
+                        }
+                        else
+                        {
+                            messageReceiver.SendMessage($"{Command.MAXSPEED}:{speed}");
                         }
                     }
-                    Console.WriteLine($"Added {entriesAdded} entries to the Database");
+                    break;
+                case Command.SYNC:
+                    {
+                        string[] databaseEntries = sParameter.Split(';');
+                        int entriesAdded = 0;
+                        foreach (string databaseEntry in databaseEntries)
+                        {
+                            string[] fields = databaseEntry.Split(',');
+                            if (fields.Length == 3)
+                            {
+                                string sSerialNumber = fields[0];
+                                string sSpeed = fields[1];
+                                string sTimeStamp = fields[2];
+                                long serialNumber;
+                                int speed;
+                                long timestamp;
+                                if (!long.TryParse(sSerialNumber, out serialNumber))
+                                {
+                                    MainGui.Main.AddToInfo("Serialnumber is not valid");
+                                    return;
+                                }
+
+                                if (!int.TryParse(sSpeed, out speed))
+                                {
+                                    MainGui.Main.AddToInfo("Speed is not valid");
+                                    return;
+                                }
+
+                                if (!long.TryParse(sTimeStamp, out timestamp))
+                                {
+                                    MainGui.Main.AddToInfo("Timestamp is not valid");
+                                    return;
+                                }
+                                DatabaseEntry entry = new DatabaseEntry(serialNumber, speed, timestamp);
+                                DatabaseWrapper.AddEntry(entry);
+                                if (DatabaseWrapper.AddEntry(entry))
+                                {
+                                    entriesAdded += 1;
+                                }
+                            }
+                        }
+                        Console.WriteLine($"Added {entriesAdded} entries to the Database");
+                    }
                     break;
             }
         }
@@ -97,10 +118,12 @@ namespace Client
                 return false;
             }
             var msgs = msg.Split(':');
+
             if (msgs.Length != 2)
             {
                 command = null;
                 parameter = null;
+                MainGui.Main.AddToInfo($"Invalid amount of parameters received:{msgs.Length}");
                 return false;
             }
             command = msgs[0];

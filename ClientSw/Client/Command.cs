@@ -9,6 +9,10 @@ namespace Client
     public enum Command
     {
         SYNC,
-        ZONE
+        ZONE,
+        SYNCDB,
+        ADDRFID,
+        GETSPEED,
+        MAXSPEED
     }
 }

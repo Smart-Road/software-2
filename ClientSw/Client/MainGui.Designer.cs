@@ -43,7 +43,6 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.nudZoneId = new System.Windows.Forms.NumericUpDown();
             this.txtZoneId = new System.Windows.Forms.Label();
-            this.lbRfids = new System.Windows.Forms.ListBox();
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).BeginInit();
             this.SuspendLayout();
@@ -86,17 +85,17 @@
             // 
             // btnGetListOfRFID
             // 
-            this.btnGetListOfRFID.Location = new System.Drawing.Point(613, 135);
+            this.btnGetListOfRFID.Location = new System.Drawing.Point(394, 93);
             this.btnGetListOfRFID.Name = "btnGetListOfRFID";
             this.btnGetListOfRFID.Size = new System.Drawing.Size(148, 23);
             this.btnGetListOfRFID.TabIndex = 7;
-            this.btnGetListOfRFID.Text = "Lijst uit database ophalen";
+            this.btnGetListOfRFID.Text = "Sync with server";
             this.btnGetListOfRFID.UseVisualStyleBackColor = true;
             this.btnGetListOfRFID.Click += new System.EventHandler(this.btnGetListOfRFID_Click);
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(108, 415);
+            this.btnClear.Location = new System.Drawing.Point(15, 340);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(75, 23);
             this.btnClear.TabIndex = 8;
@@ -107,7 +106,7 @@
             // lbInfo
             // 
             this.lbInfo.FormattingEnabled = true;
-            this.lbInfo.Location = new System.Drawing.Point(22, 180);
+            this.lbInfo.Location = new System.Drawing.Point(15, 122);
             this.lbInfo.Name = "lbInfo";
             this.lbInfo.Size = new System.Drawing.Size(553, 212);
             this.lbInfo.TabIndex = 10;
@@ -184,20 +183,11 @@
             this.txtZoneId.TabIndex = 17;
             this.txtZoneId.Text = "Zone id:";
             // 
-            // lbRfids
-            // 
-            this.lbRfids.FormattingEnabled = true;
-            this.lbRfids.Location = new System.Drawing.Point(594, 180);
-            this.lbRfids.Name = "lbRfids";
-            this.lbRfids.Size = new System.Drawing.Size(188, 212);
-            this.lbRfids.TabIndex = 18;
-            // 
-            // s
+            // MainGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(842, 539);
-            this.Controls.Add(this.lbRfids);
+            this.ClientSize = new System.Drawing.Size(616, 368);
             this.Controls.Add(this.txtZoneId);
             this.Controls.Add(this.nudZoneId);
             this.Controls.Add(this.txtServerip);
@@ -212,7 +202,7 @@
             this.Controls.Add(this.nudRFIDSpeed);
             this.Controls.Add(this.btnAddToDatabase);
             this.Controls.Add(this.btnConnect);
-            this.Name = "s";
+            this.Name = "MainGui";
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).EndInit();
@@ -237,7 +227,6 @@
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.NumericUpDown nudZoneId;
         private System.Windows.Forms.Label txtZoneId;
-        private System.Windows.Forms.ListBox lbRfids;
     }
 }
 
