@@ -34,7 +34,6 @@ namespace Client
                 MainGui.Main.AddToInfo($"Could not parse command: ({e.Message})");
                 return;
             }
-            Console.WriteLine(sParameter);
             Command command;
             if (!Enum.TryParse(sCommand, out command))
             {
@@ -43,6 +42,8 @@ namespace Client
             }
             var messageReceiver = sender as MessageReceiver;
             if (messageReceiver == null) return;
+
+            MainGui.Main.AddToInfo($"Command:{command} received with parameter:{sParameter}");
             switch (command)
             {
                 case Command.GETSPEED:
@@ -51,6 +52,7 @@ namespace Client
                         if (!long.TryParse(sParameter, out serialNumber))
                         {
                             MainGui.Main.AddToInfo("Invalid parameter at getspeed received");
+                            return;
                         }
                         int speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
                         if (speed < 0)
@@ -96,7 +98,6 @@ namespace Client
                                     return;
                                 }
                                 DatabaseEntry entry = new DatabaseEntry(serialNumber, speed, timestamp);
-                                DatabaseWrapper.AddEntry(entry);
                                 if (DatabaseWrapper.AddEntry(entry))
                                 {
                                     entriesAdded += 1;

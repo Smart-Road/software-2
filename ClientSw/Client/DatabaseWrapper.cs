@@ -20,12 +20,12 @@ namespace Client
 
             if (reader.Read())
             {
-                if (reader[0] is DBNull)
+                if (reader[Database.Speed] is DBNull)
                 {
                     // not found
                 } else
                 {
-                    speed = (int)reader[0];
+                    speed = (int)reader[Database.Speed];
                 }
             }
             Database.CloseConnection();
@@ -44,9 +44,12 @@ namespace Client
 
         public static bool AddEntry(DatabaseEntry entry)
         {
-            if (entry == null || !entry.CheckData()) return false;
+            if (entry == null || !entry.CheckData())
+            {
+                return false;
+            }
             Database.OpenConnection();
-            var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed));
+            var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed), entry.Timestamp);
             Database.CloseConnection();
             return retval;
         }

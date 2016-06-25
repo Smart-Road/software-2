@@ -203,7 +203,7 @@
             this.Controls.Add(this.btnAddToDatabase);
             this.Controls.Add(this.btnConnect);
             this.Name = "MainGui";
-            this.Text = "Form1";
+            this.Text = "Server";
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).EndInit();
             this.ResumeLayout(false);

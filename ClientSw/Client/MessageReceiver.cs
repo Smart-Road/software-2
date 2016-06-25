@@ -14,7 +14,7 @@ namespace Client
 {
     public class MessageReceiver
     {
-        private const int MaxCommandLength = 1024;
+        private const int MaxCommandLength = 10000;
         private string _received = string.Empty;
         private volatile bool _receiving = false;
         private string _lastCommand = string.Empty;
@@ -147,6 +147,7 @@ namespace Client
             {
                 throw new LengthException();
             }
+            Console.WriteLine($"Message sent:{messageWithDelimiters}");
             var messageBytes = Encoding.ASCII.GetBytes(messageWithDelimiters);
             _stream.Write(messageBytes, 0, messageBytes.Length);
         }
