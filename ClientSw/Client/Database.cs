@@ -38,6 +38,7 @@ namespace Client
             if (!createNew) return;
 
             CreateTable();
+            //DatabaseWrapper.CreateDummyData();
         }
 
         private static void CreateTable()
@@ -77,7 +78,7 @@ namespace Client
                     Console.WriteLine("Close db");
                 }
             }
-            catch (SQLiteException e)
+            catch (SQLiteException)
             {
                 return false;
             }

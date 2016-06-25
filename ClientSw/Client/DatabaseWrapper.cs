@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.SQLite;
+using System.Diagnostics;
+using System.Threading;
 
 namespace Client
 {
@@ -15,6 +17,7 @@ namespace Client
             var speed = -1;
             using (var dbConnection = new SQLiteConnection(Database.ConnectionString))
             {
+                dbConnection.Open();
                 using (
                     var sqlCommand =
                         new SQLiteCommand(
@@ -33,6 +36,7 @@ namespace Client
                         // not found
                     }
                 }
+                dbConnection.Close();
             }
 
             return speed;
@@ -69,11 +73,12 @@ namespace Client
 
         public static int AddEntries(List<DatabaseEntry> entries)
         {
-            if (entries == null || !DatabaseEntry.CheckList(entries))
+            if (entries == null || entries.Count < 1 || !DatabaseEntry.CheckList(entries))
             {
                 return -1;
             }
 
+            
             var results = new List<int>();
             try
             {
@@ -81,28 +86,27 @@ namespace Client
                 {
                     Console.WriteLine("Open db");
                     cn.Open();
-                    using (var transaction = cn.BeginTransaction())
+                    using (var command = cn.CreateCommand())
                     {
-                        using (var command = cn.CreateCommand())
+                        using (var transaction = cn.BeginTransaction())
                         {
+                            command.Transaction = transaction;
                             command.CommandText =
                                 $"INSERT INTO {Database.TableName} " +
                                 $"({Database.SerialNumber},{Database.Speed},{Database.Timestamp}) " +
                                 "VALUES (@SerialNumber,@Speed,@Timestamp);";
-                            command.Parameters.AddWithValue("@SerialNumber", "serialNumber");
-                            command.Parameters.AddWithValue("@Speed", "speed");
-                            command.Parameters.AddWithValue("@Timestamp", "timestamp");
+                            command.Prepare();
+
                             foreach (var databaseEntry in entries)
                             {
-                                command.Parameters["@SerialNumber"].Value = databaseEntry.SerialNumber;
-                                command.Parameters["@Speed"].Value = databaseEntry.Speed;
-                                command.Parameters["@Timestamp"].Value = databaseEntry.Timestamp;
+                                command.Parameters.AddWithValue("@SerialNumber", databaseEntry.SerialNumber);
+                                command.Parameters.AddWithValue("@Speed", databaseEntry.Speed);
+                                command.Parameters.AddWithValue("@Timestamp", databaseEntry.Timestamp);
                                 results.Add(command.ExecuteNonQuery());
                             }
+                            transaction.Commit();
+                            // TODO: fix the bug where the db is locked
                         }
-                        // TODO: fix the bug where the db is locked
-                        // maybe threading?
-                        transaction.Commit(); // this is very slow, because the db is locked (or so says the program)
                     }
                     cn.Close();
                     Console.WriteLine("Close db");
@@ -110,7 +114,7 @@ namespace Client
             }
             catch (SQLiteException ex)
             {
-                Console.WriteLine(ex);
+                MainGui.Main.AddToInfo($"SQL exception: {ex.Message}");
             }
             return results.Sum();
         }
@@ -128,12 +132,14 @@ namespace Client
                     using (var cmd = cn.CreateCommand())
                     {
                         cmd.CommandText = sqlQuery;
-                        var reader = cmd.ExecuteReader();
-                        if (!reader.Read() || reader.FieldCount != 1) return timestamp;
-                        if (!(reader[0] is DBNull))
+                        var obj = cmd.ExecuteScalar();
+                        if (!(obj is DBNull))
                         {
-                            timestamp = (long)reader[0];
+                            timestamp = (long) obj;
                         }
+                        
+                        
+                        //while (reader.Read()) ; // read everything, regardless if we care about the information
                     }
                     cn.Close();
                     Console.WriteLine("Close db");

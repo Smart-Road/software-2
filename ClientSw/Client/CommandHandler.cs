@@ -57,7 +57,8 @@ namespace Client
                         var speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
                         if (speed < 0)
                         {
-                            MainGui.Main.OutgoingConnection?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
+                            MainGui.Main.OutgoingConnection?.SendMessage(
+                                $"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
                         }
                         else
                         {
@@ -102,6 +103,8 @@ namespace Client
                             }
                         }
                         var entriesAdded = DatabaseWrapper.AddEntries(entriesToAdd);
+
+
                         if (entriesAdded < 0)
                         {
                             entriesAdded = 0;
