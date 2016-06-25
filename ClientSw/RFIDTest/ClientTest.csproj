@@ -53,6 +53,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="DatabaseEntryTest.cs" />
+    <Compile Include="DatabaseTest.cs" />
     <Compile Include="RFIDTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

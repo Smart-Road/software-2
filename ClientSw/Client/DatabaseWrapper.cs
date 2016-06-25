@@ -12,34 +12,48 @@ namespace Client
     {
         public static int GetSpeedFromDb(long serialNumber)
         {
-            Database.Query = $"SELECT {Database.Speed} FROM {Database.TableName} WHERE {Database.SerialNumber} = {serialNumber}";
-            Database.OpenConnection();
-            IDataReader reader = Database.Command.ExecuteReader();
-
-            int speed = -1;
-
-            if (reader.Read())
+            var speed = -1;
+            using (var dbConnection = new SQLiteConnection(Database.ConnectionString))
             {
-                if (reader[Database.Speed] is DBNull)
+                using (
+                    var sqlCommand =
+                        new SQLiteCommand(
+                            $"SELECT {Database.Speed} FROM {Database.TableName} WHERE {Database.SerialNumber} = {serialNumber};",
+                            dbConnection))
                 {
-                    // not found
-                } else
-                {
-                    speed = (int)reader[Database.Speed];
+                    IDataReader reader = sqlCommand.ExecuteReader();
+
+                    if (!reader.Read()) return speed;
+                    if (!(reader[Database.Speed] is DBNull))
+                    {
+                        speed = (int)reader[Database.Speed];
+                    }
+                    else
+                    {
+                        // not found
+                    }
                 }
             }
-            Database.CloseConnection();
+
             return speed;
         }
 
         public static List<DatabaseEntry> LoadAllFromDatabase()
         {
-            Database.Query = "SELECT * FROM Rfids";
-            Database.OpenConnection();
-
-            IDataReader reader = Database.Command.ExecuteReader();
-
-            return ReadDataToList(reader);
+            using (var connection = new SQLiteConnection(Database.ConnectionString))
+            {
+                connection.Open();
+                Console.WriteLine("Open db");
+                List<DatabaseEntry> allDatabaseEntries;
+                using (var command = new SQLiteCommand($"SELECT * FROM {Database.TableName}", connection))
+                {
+                    IDataReader reader = command.ExecuteReader();
+                    allDatabaseEntries = ReadDataToList(reader);
+                }
+                connection.Close();
+                Console.WriteLine("Close db");
+                return allDatabaseEntries;
+            }
         }
 
         public static bool AddEntry(DatabaseEntry entry)
@@ -48,32 +62,90 @@ namespace Client
             {
                 return false;
             }
-            Database.OpenConnection();
+
             var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed), entry.Timestamp);
-            Database.CloseConnection();
             return retval;
+        }
+
+        public static int AddEntries(List<DatabaseEntry> entries)
+        {
+            if (entries == null || !DatabaseEntry.CheckList(entries))
+            {
+                return -1;
+            }
+
+            var results = new List<int>();
+            try
+            {
+                using (var cn = new SQLiteConnection(Database.ConnectionString))
+                {
+                    Console.WriteLine("Open db");
+                    cn.Open();
+                    using (var transaction = cn.BeginTransaction())
+                    {
+                        using (var command = cn.CreateCommand())
+                        {
+                            command.CommandText =
+                                $"INSERT INTO {Database.TableName} " +
+                                $"({Database.SerialNumber},{Database.Speed},{Database.Timestamp}) " +
+                                "VALUES (@SerialNumber,@Speed,@Timestamp);";
+                            command.Parameters.AddWithValue("@SerialNumber", "serialNumber");
+                            command.Parameters.AddWithValue("@Speed", "speed");
+                            command.Parameters.AddWithValue("@Timestamp", "timestamp");
+                            foreach (var databaseEntry in entries)
+                            {
+                                command.Parameters["@SerialNumber"].Value = databaseEntry.SerialNumber;
+                                command.Parameters["@Speed"].Value = databaseEntry.Speed;
+                                command.Parameters["@Timestamp"].Value = databaseEntry.Timestamp;
+                                results.Add(command.ExecuteNonQuery());
+                            }
+                        }
+                        // TODO: fix the bug where the db is locked
+                        // maybe threading?
+                        transaction.Commit(); // this is very slow, because the db is locked (or so says the program)
+                    }
+                    cn.Close();
+                    Console.WriteLine("Close db");
+                }
+            }
+            catch (SQLiteException ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return results.Sum();
         }
 
         public static long GetLatestTimestamp()
         {
-            Database.Query = $"SELECT MAX({Database.Timestamp}) FROM {Database.TableName}";
-            Database.OpenConnection();
-            IDataReader reader = Database.Command.ExecuteReader();
-
             long timestamp = 0;
-            if (reader.Read() && reader.FieldCount == 1)
+            var sqlQuery = $"SELECT MAX({Database.Timestamp}) FROM {Database.TableName};";
+            try
             {
-                if (reader[0] is DBNull)
+                using (var cn = new SQLiteConnection(Database.ConnectionString))
                 {
-                    // dont do anything
-                } else
-                {
-                    timestamp = (long)reader[0];
+                    cn.Open();
+                    Console.WriteLine("Open db");
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = sqlQuery;
+                        var reader = cmd.ExecuteReader();
+                        if (!reader.Read() || reader.FieldCount != 1) return timestamp;
+                        if (!(reader[0] is DBNull))
+                        {
+                            timestamp = (long)reader[0];
+                        }
+                    }
+                    cn.Close();
+                    Console.WriteLine("Close db");
                 }
             }
-            Database.CloseConnection();
+            catch (SQLiteException ex)
+            {
+                Console.WriteLine(ex);
+            }
 
             return timestamp;
+
         }
 
         private static List<DatabaseEntry> ReadDataToList(IDataReader reader)
@@ -92,15 +164,14 @@ namespace Client
                 var entry = new DatabaseEntry(serialNumber, speed, timestamp);
                 databaseEntries.Add(entry);
             }
-            Database.CloseConnection();
             return databaseEntries;
         }
 
         private static long LongRandom(long min, long max, Random rand)
         {
-            byte[] buf = new byte[8];
+            var buf = new byte[8];
             rand.NextBytes(buf);
-            long longRand = BitConverter.ToInt64(buf, 0);
+            var longRand = BitConverter.ToInt64(buf, 0);
             return (Math.Abs(longRand % (max - min)) + min);
         }
 
@@ -110,33 +181,23 @@ namespace Client
         /// </summary>
         public static void CreateDummyData()
         {
-            Database.OpenConnection();
+            var databaseEntries = new List<DatabaseEntry>();
 
-            List<Rfid> rfidsAdded = new List<Rfid>();
-
-            try
+            var random = new Random();
+            const int amountOfRows = 1000;
+            for (var i = 0; i < amountOfRows; i++)
             {
-                Random random = new Random();
-                const int amountOfRows = 1000;
-                for (int i = 0; i < amountOfRows; i++)
+                var serialNumber = LongRandom(Rfid.MinHexSerialNumber, Rfid.MaxHexSerialNumber, random);
+                var rfid = new Rfid(serialNumber, random.Next(Rfid.MinSpeed, Rfid.MaxSpeed));
+                var entry = new DatabaseEntry(rfid.SerialNumber, rfid.Speed,
+                    Database.ConvertToTimestamp(DateTime.Now));
+                if (!databaseEntries.Contains(entry))
                 {
-                    long serialNumber = LongRandom(Rfid.MinHexSerialNumber, Rfid.MaxHexSerialNumber, random);
-                    Rfid rfid = new Rfid(serialNumber, random.Next(Rfid.MinSpeed, Rfid.MaxSpeed));
-                    int zone = random.Next(100, 500);
-                    if (!rfidsAdded.Contains(rfid))
-                    {
-                        Database.InsertData(rfid, zone);
-                    }
-                    rfidsAdded.Add(rfid);
+                    databaseEntries.Add(entry);
                 }
             }
-            catch (SQLiteException)
-            {
-                // Er is iets mis gegaan: waarschijnlijk bestond de tabel al. Voor nu is er
-                // verder geen foutafhandeling nodig.
-            }
-            Console.WriteLine("Created dummy data");
-            Database.CloseConnection();
+            var addedEntries = AddEntries(databaseEntries);
+            Console.WriteLine(addedEntries > 0 ? "Created dummy data" : "Dummy data creation failed");
         }
     }
 }

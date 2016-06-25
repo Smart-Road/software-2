@@ -10,7 +10,7 @@ namespace Master_server
         private readonly ConnectionAccepter _accepter;
         public static MainGui Main { get; private set; }
 
-        private const int PortNumber = 13;
+        private const int PortNumber = 14;
         public MainGui()
         {
             InitializeComponent();

@@ -115,7 +115,7 @@ namespace Master_server
         {
             try
             {
-                var longDate = timestamp < 0 ? ConvertToTimestamp(DateTime.Now) : timestamp;
+                var longDate = timestamp < 0 ? ConvertToTimestamp(DateTime.UtcNow) : timestamp;
                 Console.WriteLine(longDate);
                 Query = $"INSERT INTO {TableName} ({SerialNumber}, {Speed}, {Zone}, {Timestamp}) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {zone}, {longDate})";
                 Command.ExecuteNonQuery();

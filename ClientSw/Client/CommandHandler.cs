@@ -54,7 +54,7 @@ namespace Client
                             MainGui.Main.AddToInfo("Invalid parameter at getspeed received");
                             return;
                         }
-                        int speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
+                        var speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
                         if (speed < 0)
                         {
                             MainGui.Main.OutgoingConnection?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
@@ -67,16 +67,16 @@ namespace Client
                     break;
                 case Command.SYNC:
                     {
-                        string[] databaseEntries = sParameter.Split(';');
-                        int entriesAdded = 0;
-                        foreach (string databaseEntry in databaseEntries)
+                        var databaseEntries = sParameter.Split(';');
+                        var entriesToAdd = new List<DatabaseEntry>();
+                        foreach (var databaseEntry in databaseEntries)
                         {
-                            string[] fields = databaseEntry.Split(',');
+                            var fields = databaseEntry.Split(',');
                             if (fields.Length == 3)
                             {
-                                string sSerialNumber = fields[0];
-                                string sSpeed = fields[1];
-                                string sTimeStamp = fields[2];
+                                var sSerialNumber = fields[0];
+                                var sSpeed = fields[1];
+                                var sTimeStamp = fields[2];
                                 long serialNumber;
                                 int speed;
                                 long timestamp;
@@ -97,12 +97,14 @@ namespace Client
                                     MainGui.Main.AddToInfo("Timestamp is not valid");
                                     return;
                                 }
-                                DatabaseEntry entry = new DatabaseEntry(serialNumber, speed, timestamp);
-                                if (DatabaseWrapper.AddEntry(entry))
-                                {
-                                    entriesAdded += 1;
-                                }
+                                var entry = new DatabaseEntry(serialNumber, speed, timestamp);
+                                entriesToAdd.Add(entry);
                             }
+                        }
+                        var entriesAdded = DatabaseWrapper.AddEntries(entriesToAdd);
+                        if (entriesAdded < 0)
+                        {
+                            entriesAdded = 0;
                         }
                         Console.WriteLine($"Added {entriesAdded} entries to the Database");
                     }

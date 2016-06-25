@@ -15,19 +15,27 @@ namespace Client
         private ConnectionAccepter connectionAccepter;
         public OutgoingConnection OutgoingConnection { get; private set; }
 
-        private const int portnumber = 13;
+        private const int PortNumber = 13;
 
         public static MainGui Main { get; private set; }
 
         public MainGui()
         {
             InitializeComponent();
-            connectionAccepter = new ConnectionAccepter(portnumber);
-            connectionAccepter.StartAccepting();
+            connectionAccepter = new ConnectionAccepter(PortNumber);
+            try
+            {
+                connectionAccepter.StartAccepting();
+            }
+            catch (SocketException ex)
+            {
+                lbInfo.Items.Insert(0, $"SocketException:{ex.Message}");
+            }
 
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
             Main = this;
+            Database.PrepareDatabase();
         }
 
         private void messageHandler_MessageReceived(object sender, MessageReceivedEventArgs e)
@@ -39,13 +47,13 @@ namespace Client
 
         private void btnAddToDatabase_Click(object sender, EventArgs e)
         {
-            string serialNumber = tbRFIDNumber.Text;
-            int speed = Convert.ToInt32(nudRFIDSpeed.Value);
+            var serialNumber = tbRFIDNumber.Text;
+            var speed = Convert.ToInt32(nudRFIDSpeed.Value);
 
             if (speed >= Rfid.MinSpeed && speed <= Rfid.MaxSpeed && !string.IsNullOrWhiteSpace(serialNumber) &&
                 OutgoingConnection != null)
             {
-                Rfid rfid = new Rfid(serialNumber, speed);
+                var rfid = new Rfid(serialNumber, speed);
                 string message = $"{Command.ADDRFID}:{rfid.ToNumberString()}";
                 try
                 {
@@ -83,7 +91,7 @@ namespace Client
             {
                 try
                 {
-                    OutgoingConnection = new OutgoingConnection(tbServerIp.Text, portnumber, (int)nudZoneId.Value);
+                    OutgoingConnection = new OutgoingConnection(tbServerIp.Text, (int)nudPortnumber.Value, (int)nudZoneId.Value);
                     OutgoingConnection.ConnectionUpdate += OutgoingConnection_ConnectionUpdate;
                     OutgoingConnection.MakeConnection();
                 }
@@ -112,7 +120,7 @@ namespace Client
         {
             var textBox = (TextBox)sender;
             var valid = Rfid.ValidateRfid(textBox.Text);
-            lblCheckSerialString.Text = valid ? "Valid input" : "Invalid input";
+            lblCheckSerialString.Text = valid ? "✔" : "X";
             lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;
             btnAddToDatabase.Enabled = valid && (OutgoingConnection?.Connected ?? false);
         }
@@ -121,7 +129,7 @@ namespace Client
         {
             lbInfo.Invoke(new EventHandler(delegate
             {
-                int msgNumber = lbInfo.Items.Count + 1;
+                var msgNumber = lbInfo.Items.Count + 1;
                 lbInfo.Items.Insert(0, $"({msgNumber}) {message}");
             }));
         }
