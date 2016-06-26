@@ -9,6 +9,8 @@ namespace Server
     {
         private readonly List<MessageReceiver> _messageReceivers = new List<MessageReceiver>();
 
+        public event CommandHandlerCallbackDelegate CommandHandlerCallback;
+        public delegate void CommandHandlerCallbackDelegate(object sender, CommandHandledEventArgs e);
         private const string SyncDelimiter = ";";
 
         public void AddEntry(MessageReceiver msgReceiver)
@@ -25,19 +27,19 @@ namespace Server
             _messageReceivers.Remove(messageReceiver);
         }
 
-        private static void MsgReceiver_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void MsgReceiver_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
             string sCommand;
             string sParameter;
             if (!ParseMessage(e.Message, out sCommand, out sParameter))
             {
-                MainGui.Main.AddInfoToLb($"Could not parse command: ({e.Message})");
+                OnCommandHandled(new CommandHandledEventArgs(false, $"Could not parse command: ({e.Message})"));
                 return;
             }
             Command command;
             if (!Enum.TryParse(sCommand, out command))
             {
-                MainGui.Main.AddInfoToLb($"Invalid command received: ({sCommand})");
+                OnCommandHandled(new CommandHandledEventArgs(false, $"Invalid command received: ({sCommand})"));
                 return;
             }
             var messageReceiver = sender as MessageReceiver;
@@ -45,15 +47,14 @@ namespace Server
             switch (command)
             {
                 case Command.SYNCDB:
-                    MainGui.Main.AddInfoToLb(SyncDb(messageReceiver, sParameter)
-                        ? "Syncing db succeeded" :
-                        "Syncing db failed");
+                    var syncsucces = SyncDb(messageReceiver, sParameter);
+                    OnCommandHandled(new CommandHandledEventArgs(syncsucces, "Syncing db " + (syncsucces ? "succeeded" : "failed")));
                     break;
                 case Command.ADDRFID:
                 case Command.CHANGERFID:
                     if (messageReceiver.Zone == 0)
                     {
-                        Console.WriteLine("Zone is not set");
+                        OnCommandHandled(new CommandHandledEventArgs(false, "Zone is not set"));
                         messageReceiver.SendMessage($"{Command.ERROR}:{Command.NO_ZONE_SET}");
                         return;
                     }
@@ -62,6 +63,7 @@ namespace Server
                     string[] parameters = sParameter.Split(',');
                     if (parameters.Length != 2)
                     {
+                        OnCommandHandled(new CommandHandledEventArgs(false, "Invalid amount of parameters"));
                         messageReceiver.SendMessage($"{Command.ERROR}:{Command.INVALID_AMOUNT_OF_PARAMS}");
                         return;
                     }
@@ -69,13 +71,13 @@ namespace Server
                     int maxSpeed;
                     if (!long.TryParse(parameters[0], out serialNumber) || !int.TryParse(parameters[1], out maxSpeed))
                     {
-                        MainGui.Main.AddInfoToLb("Could not parse serialNumber or maxSpeed");
+                        OnCommandHandled(new CommandHandledEventArgs(false, "Could not parse serialNumber or maxSpeed"));
                         return;
                     }
                     Rfid rfid;
                     if (!Rfid.GetRfid(serialNumber, maxSpeed, out rfid))
                     {
-                        MainGui.Main.AddInfoToLb("Invalid rfid received");
+                        OnCommandHandled(new CommandHandledEventArgs(false, "Invalid rfid received"));
                         return;
                     }
 
@@ -86,11 +88,11 @@ namespace Server
                             if (!DatabaseWrapper.InsertData(rfid, messageReceiver.Zone))
                             {
                                 messageReceiver.SendMessage($"{Command.ERROR}:{Command.ALREADY_IN_DB}");
-                                MainGui.Main.AddInfoToLb("Could not add rfid to database");
+                                OnCommandHandled(new CommandHandledEventArgs(false, "Could not add rfid to database"));
                                 return;
                             }
 
-                            MainGui.Main.AddInfoToLb($"Rfid added to database: ({rfid})");
+                            OnCommandHandled(new CommandHandledEventArgs(true, $"Rfid added to database: ({rfid})"));
                             break;
                         case Command.CHANGERFID:
                             if (!DatabaseWrapper.UpdateEntry(new DatabaseEntry(rfid.SerialNumber, 
@@ -101,7 +103,7 @@ namespace Server
                                 messageReceiver.SendMessage($"{Command.ERROR}:{Command.UPDATE_FAILED}");
                                 return;
                             }
-                            MainGui.Main.AddInfoToLb($"Rfid updated: ({rfid})");
+                            OnCommandHandled(new CommandHandledEventArgs(true, $"Rfid updated: ({rfid})"));
                             break;
                     }
                     break;
@@ -109,14 +111,17 @@ namespace Server
                     int zone;
                     if (!int.TryParse(sParameter, out zone))
                     {
-                        MainGui.Main.AddInfoToLb($"Unparseable string with zone received: ({sParameter})");
+                        OnCommandHandled(new CommandHandledEventArgs(false, $"Unparseable string with zone received: ({sParameter})"));
                         return;
                     }
                     messageReceiver.Zone = zone;
-                    MainGui.Main.AddInfoToLb($"Zone set to ({messageReceiver.Zone})");
+                    OnCommandHandled(new CommandHandledEventArgs(true, $"Zone set to ({messageReceiver.Zone})"));
+                    break;
+                case Command.ERROR:
+                    OnCommandHandled(new CommandHandledEventArgs(true, $"ERROR:{sParameter}"));
                     break;
                 default:
-                    MainGui.Main.AddInfoToLb($"Invalid command received:{command}");
+                    OnCommandHandled(new CommandHandledEventArgs(false, $"Invalid command received:{command}"));
                     break;
             }
         }
@@ -141,18 +146,18 @@ namespace Server
             return true;
         }
 
-        private static bool SyncDb(MessageReceiver messageReceiver, string sParameter)
+        private bool SyncDb(MessageReceiver messageReceiver, string sParameter)
         {
             if (messageReceiver.Zone == 0)
             {
-                Console.WriteLine("Zone is not set");
+                OnCommandHandled(new CommandHandledEventArgs(false, "Zone is not set"));
                 messageReceiver.SendMessage($"{Command.ERROR}:{Command.NO_ZONE_SET}");
                 return false;
             }
             long timestamp;
             if (!long.TryParse(sParameter, out timestamp))
             {
-                MainGui.Main.AddInfoToLb($"Could not parse timestamp {sParameter}");
+                OnCommandHandled(new CommandHandledEventArgs(false, $"Could not parse timestamp {sParameter}"));
                 return false;
             }
             var entriesAfterTimestamp = DatabaseWrapper.LoadZoneAfterTimeStamp(messageReceiver.Zone, timestamp);
@@ -168,11 +173,26 @@ namespace Server
                 }
                 counter++;
             }
-            MainGui.Main.AddInfoToLb($"{counter} entries synced");
+            OnCommandHandled(new CommandHandledEventArgs(true, $"{counter} entries synced"));
             messageReceiver.SendMessage(syncmessage);
             return true;
         }
+
+        protected virtual void OnCommandHandled(CommandHandledEventArgs e)
+        {
+            CommandHandlerCallback?.Invoke(this, e);
+        }
     }
 
+    public class CommandHandledEventArgs : EventArgs
+    {
+        public readonly string Message;
+        public readonly bool Valid;
+        public CommandHandledEventArgs(bool valid, string message)
+        {
+            Valid = valid;
+            Message = message;
+        }
+    }
 
 }

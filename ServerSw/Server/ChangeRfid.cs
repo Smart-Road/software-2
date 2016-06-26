@@ -17,13 +17,21 @@ namespace Server
         {
             InitializeComponent();
             _outgoingConnection = outgoingConnection;
+            _outgoingConnection.ConnectionUpdate += _outgoingConnection_ConnectionUpdate;
             nudNewSpeed.Minimum = Rfid.MinSpeed;
             nudNewSpeed.Maximum = Rfid.MaxSpeed;
         }
 
+        private void _outgoingConnection_ConnectionUpdate(object sender, ConnectionUpdateEventArgs e)
+        {
+            if (!e.ConnectionState)
+            {
+                Close();
+            }
+        }
+
         private void btnLoad_Click(object sender, EventArgs e)
         {
-            Console.WriteLine($"Zone is {_outgoingConnection.Zone}");
             lbRfids.DataSource = DatabaseWrapper.LoadZoneFromDb(_outgoingConnection.Zone);
             lbRfids.Format += LbRfids_Format;
         }

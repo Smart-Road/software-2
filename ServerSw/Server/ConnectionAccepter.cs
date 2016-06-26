@@ -16,6 +16,8 @@ namespace Server
 
         public event ClientAcceptedDelegate ClientAccepted;
         public delegate void ClientAcceptedDelegate(object sender, ConnectionUpdateEventArgs e);
+        public event CommandHandlerCallbackDelegate CommandHandlerCallback;
+        public delegate void CommandHandlerCallbackDelegate(object sender, CommandHandledEventArgs e);
 
         private readonly TcpListener _tcpListener;
 
@@ -44,9 +46,16 @@ namespace Server
                 OnClientAccepted(new ConnectionUpdateEventArgs(true, client));
 
                 var messageReceiver = new MessageReceiver(client);
+                _commandHandler.CommandHandlerCallback += OnCommandCallback;
                 _commandHandler.AddEntry(messageReceiver);
             }
         }
+
+        protected virtual void OnCommandCallback(object sender, CommandHandledEventArgs e)
+        {
+            CommandHandlerCallback?.Invoke(sender, e);
+        }
+
 
         protected virtual void OnClientAccepted(ConnectionUpdateEventArgs e)
         {

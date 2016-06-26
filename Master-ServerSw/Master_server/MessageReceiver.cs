@@ -51,7 +51,7 @@ namespace Server
         {
             if (!(e.Result is ConnectionLostEventArgs)) return;
             var eventArgs = (ConnectionLostEventArgs)e.UserState;
-            MainGui.Main.AddInfoToLb($"Connection lost with {_client.Client.RemoteEndPoint}");
+            //MainGui.Main.AddInfoToLb($"Connection lost with {_client.Client.RemoteEndPoint}");
             OnConnectionLost(eventArgs);
         }
 
@@ -136,7 +136,7 @@ namespace Server
         {
             if (!_client.Connected)
             {
-                MainGui.Main.AddInfoToLb("can not send message when not connected");
+                Console.WriteLine("can not send message when not connected");
                 return;
             }
             string messageWithDelimiters = $"{_beginDelimiter}{message}{_endDelimiter}";
