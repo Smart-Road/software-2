@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Server
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal enum Command
+    public enum Command
     {
         None,
         SYNC,

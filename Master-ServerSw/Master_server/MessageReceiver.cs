@@ -20,10 +20,10 @@ namespace Server
         private State _state = State.Waiting;
         private readonly char _beginDelimiter;
         private readonly char _endDelimiter;
-        public event MessageReceivedDelegate MessageReceived;
+        private readonly string _remoteEndPoint;
         public delegate void MessageReceivedDelegate(object sender, MessageReceivedEventArgs e);
         public delegate void ClientDisconnectedDelegate(object sender, ConnectionLostEventArgs e);
-
+        public event MessageReceivedDelegate MessageReceived;
         public event ClientDisconnectedDelegate ClientDisconnected;
         public int Zone { get; set; } = 0;
 
@@ -45,12 +45,13 @@ namespace Server
             _bwMessageListener.DoWork += ListenForCommandsBw;
             _bwMessageListener.ProgressChanged += bwMessageListener_ReportProgress;
             _bwMessageListener.RunWorkerCompleted += _bwMessageListener_RunWorkerCompleted;
+            _remoteEndPoint = client.Client.RemoteEndPoint.ToString();
         }
 
         private void _bwMessageListener_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (!(e.Result is ConnectionLostEventArgs)) return;
-            var eventArgs = (ConnectionLostEventArgs)e.UserState;
+            var eventArgs = (ConnectionLostEventArgs)e.Result;
             //MainGui.Main.AddInfoToLb($"Connection lost with {_client.Client.RemoteEndPoint}");
             OnConnectionLost(eventArgs);
         }
@@ -79,7 +80,7 @@ namespace Server
                     var byteIn = _stream.ReadByte();
                     if (byteIn < 0)
                     {
-                        e.Result = new ConnectionLostEventArgs();
+                        e.Result = new ConnectionLostEventArgs(_remoteEndPoint);
                         return;
                     }
                     byte[] bytes = {(byte) byteIn};
@@ -119,14 +120,14 @@ namespace Server
                 {
                     _receiving = false;
                     Console.WriteLine(ex);
-                    e.Result = new ConnectionLostEventArgs();
+                    e.Result = new ConnectionLostEventArgs(_remoteEndPoint);
                     return;
                 }
                 catch (ObjectDisposedException ex)
                 {
                     _receiving = false;
                     Console.WriteLine(ex);
-                    e.Result = new ConnectionLostEventArgs();
+                    e.Result = new ConnectionLostEventArgs(_remoteEndPoint);
                     return;
                 }
             }
@@ -198,5 +199,11 @@ namespace Server
 
     public class ConnectionLostEventArgs : EventArgs
     {
+        public readonly string RemoteEndPoint;
+
+        public ConnectionLostEventArgs(string endPoint)
+        {
+            RemoteEndPoint = endPoint;
+        }
     }
 }
