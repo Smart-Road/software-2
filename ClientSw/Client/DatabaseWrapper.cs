@@ -8,7 +8,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Client
+namespace Server
 {
     public static class DatabaseWrapper
     {

@@ -1,5 +1,5 @@
 ﻿using System;
-using Client;
+using Server;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace RFIDTest

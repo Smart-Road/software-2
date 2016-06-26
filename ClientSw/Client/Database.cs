@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.IO;
 
-namespace Client
+namespace Server
 {
 
     public static class Database

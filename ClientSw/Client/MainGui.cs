@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Client
+namespace Server
 {
     public partial class MainGui : Form
     {

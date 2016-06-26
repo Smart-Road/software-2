@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Net;
 using System;
 
-namespace Client
+namespace Server
 {
     public class OutgoingConnection
     {
