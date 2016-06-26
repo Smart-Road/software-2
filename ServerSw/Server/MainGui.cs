@@ -113,6 +113,8 @@ namespace Server
             {
                 btnConnect.Text = e.ConnectionState ? "Disconnect" : "Connect";
                 tbRFIDNumber_TextChanged(tbRFIDNumber, null);
+                tbServerIp.Enabled = nudZoneId.Enabled = nudPortnumber.Enabled = !e.ConnectionState;
+                btnGetListOfRFID.Enabled = btnUpdateRfid.Enabled = e.ConnectionState;
             }));
         }
 
@@ -132,6 +134,12 @@ namespace Server
                 var msgNumber = lbInfo.Items.Count + 1;
                 lbInfo.Items.Insert(0, $"({msgNumber}) {message}");
             }));
+        }
+
+        private void btnUpdateRfid_Click(object sender, EventArgs e)
+        {
+            Form updateRfid = new ChangeRfid(OutgoingConnection);
+            updateRfid.Show();
         }
     }
 }

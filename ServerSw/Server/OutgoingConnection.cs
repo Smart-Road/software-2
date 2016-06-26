@@ -13,7 +13,8 @@ namespace Server
         private TcpClient _client;
         private IPAddress _ipAddress;
         private int _portNumber;
-        private int _zone;
+
+        public int Zone { get; }
 
         public event ConnectionUpdateDelegate ConnectionUpdate;
         public delegate void ConnectionUpdateDelegate(object sender, ConnectionUpdateEventArgs e);
@@ -39,7 +40,7 @@ namespace Server
             _ipAddress = IPAddress.Parse(sIpAdress);
             _portNumber = portNumber;
 
-            _zone = zone;
+            Zone = zone;
         }
 
         private void _bwConnect_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -47,7 +48,7 @@ namespace Server
             Connected = (bool)e.Result;
             if (Connected)
             {
-                SendMessage($"{Command.ZONE}:{_zone}");
+                SendMessage($"{Command.ZONE}:{Zone}");
             }
             
         }

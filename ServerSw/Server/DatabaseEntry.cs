@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Server
 {
@@ -10,12 +7,14 @@ namespace Server
     {
         public readonly long SerialNumber;
         public readonly int Speed;
+        public readonly int Zone;
         public readonly long Timestamp;
 
-        public DatabaseEntry(long serialNumber, int speed, long timestamp)
+        public DatabaseEntry(long serialNumber, int speed, int zone, long timestamp)
         {
             SerialNumber = serialNumber;
             Speed = speed;
+            Zone = zone;
             Timestamp = timestamp;
         }
 
@@ -25,6 +24,7 @@ namespace Server
                    SerialNumber <= Rfid.MaxHexSerialNumber &&
                    Speed >= Rfid.MinSpeed &&
                    Speed <= Rfid.MaxSpeed &&
+                   Zone > -1 &&
                    Timestamp > 0;
         }
 
@@ -37,5 +37,7 @@ namespace Server
         {
             return entries.All(databaseEntry => databaseEntry.CheckData()); // check all the entries for validity
         }
+
+        public override string ToString() => $"{SerialNumber},{Speed},{Zone},{Timestamp}";
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading.Tasks;
+using Server;
 
 namespace Master_server
 {
@@ -82,11 +80,12 @@ namespace Master_server
                     }
 
                     // add to database
-                    if (!DatabaseWrapper.AddRfid(rfid, messageReceiver.Zone))
+                    if (!Database.InsertData(rfid, messageReceiver.Zone))
                     {
                         MainGui.Main.AddInfoToLb("Could not add rfid to database");
                         return;
                     }
+                    
                     MainGui.Main.AddInfoToLb($"Rfid added to database: ({rfid})");
                     break;
                 case Command.ZONE:
@@ -145,13 +144,14 @@ namespace Master_server
             var counter = 0;
             foreach (var databaseEntry in entriesAfterTimestamp)
             {
-                syncmessage += databaseEntry.ToServerString();
+                syncmessage += databaseEntry.ToString();
                 if (counter != length - 1)
                 {
                     syncmessage += SyncDelimiter;
                 }
                 counter++;
             }
+            MainGui.Main.AddInfoToLb($"{counter} entries synced");
             messageReceiver.SendMessage(syncmessage);
             return true;
         }

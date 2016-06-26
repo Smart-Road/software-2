@@ -58,7 +58,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Client\Server.csproj">
+    <ProjectReference Include="..\Server\Server.csproj">
       <Project>{cf1c043d-c486-47ce-89a4-6a324b8da8db}</Project>
       <Name>Server</Name>
     </ProjectReference>

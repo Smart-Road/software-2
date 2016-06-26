@@ -47,11 +47,13 @@
             this.gbMasterServerConnection = new System.Windows.Forms.GroupBox();
             this.gbAddRfid = new System.Windows.Forms.GroupBox();
             this.gbUpdateRfid = new System.Windows.Forms.GroupBox();
+            this.btnUpdateRfid = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudPortnumber)).BeginInit();
             this.gbMasterServerConnection.SuspendLayout();
             this.gbAddRfid.SuspendLayout();
+            this.gbUpdateRfid.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnAddToDatabase
@@ -92,6 +94,7 @@
             // 
             // btnGetListOfRFID
             // 
+            this.btnGetListOfRFID.Enabled = false;
             this.btnGetListOfRFID.Location = new System.Drawing.Point(86, 127);
             this.btnGetListOfRFID.Name = "btnGetListOfRFID";
             this.btnGetListOfRFID.Size = new System.Drawing.Size(100, 23);
@@ -247,12 +250,24 @@
             // 
             // gbUpdateRfid
             // 
+            this.gbUpdateRfid.Controls.Add(this.btnUpdateRfid);
             this.gbUpdateRfid.Location = new System.Drawing.Point(220, 12);
             this.gbUpdateRfid.Name = "gbUpdateRfid";
             this.gbUpdateRfid.Size = new System.Drawing.Size(200, 158);
             this.gbUpdateRfid.TabIndex = 22;
             this.gbUpdateRfid.TabStop = false;
             this.gbUpdateRfid.Text = "Update rfid";
+            // 
+            // btnUpdateRfid
+            // 
+            this.btnUpdateRfid.Enabled = false;
+            this.btnUpdateRfid.Location = new System.Drawing.Point(6, 19);
+            this.btnUpdateRfid.Name = "btnUpdateRfid";
+            this.btnUpdateRfid.Size = new System.Drawing.Size(188, 131);
+            this.btnUpdateRfid.TabIndex = 0;
+            this.btnUpdateRfid.Text = "Click here";
+            this.btnUpdateRfid.UseVisualStyleBackColor = true;
+            this.btnUpdateRfid.Click += new System.EventHandler(this.btnUpdateRfid_Click);
             // 
             // MainGui
             // 
@@ -273,6 +288,7 @@
             this.gbMasterServerConnection.PerformLayout();
             this.gbAddRfid.ResumeLayout(false);
             this.gbAddRfid.PerformLayout();
+            this.gbUpdateRfid.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -297,6 +313,7 @@
         private System.Windows.Forms.GroupBox gbMasterServerConnection;
         private System.Windows.Forms.GroupBox gbAddRfid;
         private System.Windows.Forms.GroupBox gbUpdateRfid;
+        private System.Windows.Forms.Button btnUpdateRfid;
     }
 }
 

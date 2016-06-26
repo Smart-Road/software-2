@@ -32,19 +32,19 @@
             this.btnLoad = new System.Windows.Forms.Button();
             this.txtSerialnumber = new System.Windows.Forms.Label();
             this.gbChangeRfid = new System.Windows.Forms.GroupBox();
-            this.lblSerialnumber = new System.Windows.Forms.Label();
-            this.txtNewSpeed = new System.Windows.Forms.Label();
-            this.nudNewSpeed = new System.Windows.Forms.NumericUpDown();
-            this.txtCurSpeed = new System.Windows.Forms.Label();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.lblCurSpeed = new System.Windows.Forms.Label();
             this.btnUpdate = new System.Windows.Forms.Button();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.txtCurSpeed = new System.Windows.Forms.Label();
+            this.txtNewSpeed = new System.Windows.Forms.Label();
+            this.lblCurSpeed = new System.Windows.Forms.Label();
+            this.nudNewSpeed = new System.Windows.Forms.NumericUpDown();
+            this.lblSerialnumber = new System.Windows.Forms.Label();
             this.gbChangeRfid.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudNewSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudNewSpeed)).BeginInit();
             this.SuspendLayout();
             // 
             // lbRfids
@@ -54,10 +54,11 @@
             this.lbRfids.Name = "lbRfids";
             this.lbRfids.Size = new System.Drawing.Size(345, 446);
             this.lbRfids.TabIndex = 0;
+            this.lbRfids.SelectedIndexChanged += new System.EventHandler(this.lbRfids_SelectedIndexChanged);
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(378, 12);
+            this.btnLoad.Location = new System.Drawing.Point(369, 12);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(83, 23);
             this.btnLoad.TabIndex = 1;
@@ -85,39 +86,14 @@
             this.gbChangeRfid.TabStop = false;
             this.gbChangeRfid.Text = "Change selected rfid";
             // 
-            // lblSerialnumber
+            // btnUpdate
             // 
-            this.lblSerialnumber.AutoSize = true;
-            this.lblSerialnumber.Location = new System.Drawing.Point(12, 21);
-            this.lblSerialnumber.Name = "lblSerialnumber";
-            this.lblSerialnumber.Size = new System.Drawing.Size(67, 13);
-            this.lblSerialnumber.TabIndex = 3;
-            this.lblSerialnumber.Text = "select an rfid";
-            // 
-            // txtNewSpeed
-            // 
-            this.txtNewSpeed.AutoSize = true;
-            this.txtNewSpeed.Location = new System.Drawing.Point(5, 80);
-            this.txtNewSpeed.Name = "txtNewSpeed";
-            this.txtNewSpeed.Size = new System.Drawing.Size(61, 13);
-            this.txtNewSpeed.TabIndex = 4;
-            this.txtNewSpeed.Text = "New speed";
-            // 
-            // nudNewSpeed
-            // 
-            this.nudNewSpeed.Location = new System.Drawing.Point(15, 78);
-            this.nudNewSpeed.Name = "nudNewSpeed";
-            this.nudNewSpeed.Size = new System.Drawing.Size(87, 20);
-            this.nudNewSpeed.TabIndex = 5;
-            // 
-            // txtCurSpeed
-            // 
-            this.txtCurSpeed.AutoSize = true;
-            this.txtCurSpeed.Location = new System.Drawing.Point(5, 51);
-            this.txtCurSpeed.Name = "txtCurSpeed";
-            this.txtCurSpeed.Size = new System.Drawing.Size(73, 13);
-            this.txtCurSpeed.TabIndex = 6;
-            this.txtCurSpeed.Text = "Current speed";
+            this.btnUpdate.Location = new System.Drawing.Point(6, 154);
+            this.btnUpdate.Name = "btnUpdate";
+            this.btnUpdate.Size = new System.Drawing.Size(208, 23);
+            this.btnUpdate.TabIndex = 5;
+            this.btnUpdate.Text = "Update selected rfid";
+            this.btnUpdate.UseVisualStyleBackColor = true;
             // 
             // splitContainer1
             // 
@@ -141,6 +117,24 @@
             this.splitContainer1.SplitterDistance = 87;
             this.splitContainer1.TabIndex = 4;
             // 
+            // txtCurSpeed
+            // 
+            this.txtCurSpeed.AutoSize = true;
+            this.txtCurSpeed.Location = new System.Drawing.Point(5, 51);
+            this.txtCurSpeed.Name = "txtCurSpeed";
+            this.txtCurSpeed.Size = new System.Drawing.Size(73, 13);
+            this.txtCurSpeed.TabIndex = 6;
+            this.txtCurSpeed.Text = "Current speed";
+            // 
+            // txtNewSpeed
+            // 
+            this.txtNewSpeed.AutoSize = true;
+            this.txtNewSpeed.Location = new System.Drawing.Point(5, 80);
+            this.txtNewSpeed.Name = "txtNewSpeed";
+            this.txtNewSpeed.Size = new System.Drawing.Size(61, 13);
+            this.txtNewSpeed.TabIndex = 4;
+            this.txtNewSpeed.Text = "New speed";
+            // 
             // lblCurSpeed
             // 
             this.lblCurSpeed.AutoSize = true;
@@ -150,14 +144,21 @@
             this.lblCurSpeed.TabIndex = 6;
             this.lblCurSpeed.Text = "none";
             // 
-            // btnUpdate
+            // nudNewSpeed
             // 
-            this.btnUpdate.Location = new System.Drawing.Point(6, 154);
-            this.btnUpdate.Name = "btnUpdate";
-            this.btnUpdate.Size = new System.Drawing.Size(208, 23);
-            this.btnUpdate.TabIndex = 5;
-            this.btnUpdate.Text = "Update selected rfid";
-            this.btnUpdate.UseVisualStyleBackColor = true;
+            this.nudNewSpeed.Location = new System.Drawing.Point(15, 78);
+            this.nudNewSpeed.Name = "nudNewSpeed";
+            this.nudNewSpeed.Size = new System.Drawing.Size(87, 20);
+            this.nudNewSpeed.TabIndex = 5;
+            // 
+            // lblSerialnumber
+            // 
+            this.lblSerialnumber.AutoSize = true;
+            this.lblSerialnumber.Location = new System.Drawing.Point(12, 21);
+            this.lblSerialnumber.Name = "lblSerialnumber";
+            this.lblSerialnumber.Size = new System.Drawing.Size(67, 13);
+            this.lblSerialnumber.TabIndex = 3;
+            this.lblSerialnumber.Text = "select an rfid";
             // 
             // ChangeRfid
             // 
@@ -168,15 +169,15 @@
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.lbRfids);
             this.Name = "ChangeRfid";
-            this.Text = "ChangeRfid";
+            this.Text = "Change rfid";
             this.gbChangeRfid.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.nudNewSpeed)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.nudNewSpeed)).EndInit();
             this.ResumeLayout(false);
 
         }

@@ -20,9 +20,11 @@ namespace RFIDTest
         [TestMethod]
         public void TestAddEntry()
         {
-            Assert.IsTrue(Database.InsertData(new Rfid(Rfid.MinHexSerialNumber, 30)));
-            Assert.IsTrue(DatabaseWrapper.AddEntry(new DatabaseEntry(Rfid.MinHexSerialNumber + 1, 110, Database.ConvertToTimestamp(DateTime.UtcNow))));
-            Assert.IsTrue(Database.InsertData(new Rfid(Rfid.MinHexSerialNumber + 2, 40)));
+            int zone = 30;
+            int speed = 120;
+            Assert.IsTrue(Database.InsertData(new Rfid(Rfid.MinHexSerialNumber, 30), zone));
+            Assert.IsTrue(DatabaseWrapper.AddEntry(new DatabaseEntry(Rfid.MinHexSerialNumber + 1, speed, zone, Database.ConvertToTimestamp(DateTime.UtcNow))));
+            Assert.IsTrue(Database.InsertData(new Rfid(Rfid.MinHexSerialNumber + 2, speed), zone));
         }
     }
 }

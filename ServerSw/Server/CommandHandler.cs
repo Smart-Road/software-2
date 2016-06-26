@@ -9,7 +9,7 @@ namespace Server
     class CommandHandler
     {
         private readonly List<MessageReceiver> _messageReceivers = new List<MessageReceiver>();
-
+        private const int FieldsPerEntry = 4;
         public void AddEntry(MessageReceiver msgReceiver)
         {
             _messageReceivers.Add(msgReceiver);
@@ -73,37 +73,39 @@ namespace Server
                         foreach (var databaseEntry in databaseEntries)
                         {
                             var fields = databaseEntry.Split(',');
-                            if (fields.Length == 3)
+                            if (fields.Length != FieldsPerEntry) continue;
+                            var sSerialNumber = fields[0];
+                            var sSpeed = fields[1];
+                            var sZone = fields[2];
+                            var sTimeStamp = fields[3];
+                            long serialNumber, timestamp;
+                            int speed, zone;
+                            if (!long.TryParse(sSerialNumber, out serialNumber))
                             {
-                                var sSerialNumber = fields[0];
-                                var sSpeed = fields[1];
-                                var sTimeStamp = fields[2];
-                                long serialNumber;
-                                int speed;
-                                long timestamp;
-                                if (!long.TryParse(sSerialNumber, out serialNumber))
-                                {
-                                    MainGui.Main.AddToInfo("Serialnumber is not valid");
-                                    return;
-                                }
-
-                                if (!int.TryParse(sSpeed, out speed))
-                                {
-                                    MainGui.Main.AddToInfo("Speed is not valid");
-                                    return;
-                                }
-
-                                if (!long.TryParse(sTimeStamp, out timestamp))
-                                {
-                                    MainGui.Main.AddToInfo("Timestamp is not valid");
-                                    return;
-                                }
-                                var entry = new DatabaseEntry(serialNumber, speed, timestamp);
-                                entriesToAdd.Add(entry);
+                                MainGui.Main.AddToInfo("Serialnumber is not valid");
+                                return;
                             }
+
+                            if (!int.TryParse(sSpeed, out speed))
+                            {
+                                MainGui.Main.AddToInfo("Speed is not valid");
+                                return;
+                            }
+                            // maybe add a check for invalid zone
+                            if (!int.TryParse(sZone, out zone))
+                            {
+                                MainGui.Main.AddToInfo("Zone is not valid");
+                                return;
+                            }
+                            if (!long.TryParse(sTimeStamp, out timestamp))
+                            {
+                                MainGui.Main.AddToInfo("Timestamp is not valid");
+                                return;
+                            }
+                            var entry = new DatabaseEntry(serialNumber, speed, zone, timestamp);
+                            entriesToAdd.Add(entry);
                         }
                         var entriesAdded = DatabaseWrapper.AddEntries(entriesToAdd);
-
 
                         if (entriesAdded < 0)
                         {

@@ -47,11 +47,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\ServerSw\Server\Database.cs">
+      <Link>Database.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ServerSw\Server\DatabaseEntry.cs">
+      <Link>DatabaseEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ServerSw\Server\DatabaseWrapper.cs">
+      <Link>DatabaseWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ServerSw\Server\RFID.cs">
+      <Link>RFID.cs</Link>
+    </Compile>
     <Compile Include="Command.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="ConnectionAccepter.cs" />
-    <Compile Include="DatabaseEntry.cs" />
-    <Compile Include="DatabaseWrapper.cs" />
     <Compile Include="MainGUI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -61,7 +71,6 @@
     <Compile Include="MessageReceiver.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rfid.cs" />
     <EmbeddedResource Include="MainGUI.resx">
       <DependentUpon>MainGUI.cs</DependentUpon>
     </EmbeddedResource>
@@ -75,7 +84,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Database.cs" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

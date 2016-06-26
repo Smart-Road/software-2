@@ -5,26 +5,15 @@ using System.IO;
 
 namespace Server
 {
-
     public static class Database
     {
         public const string TableName = "Rfids";
         public const string SerialNumber = "serialNumber";
         public const string Speed = "speed";
         public const string Timestamp = "timestamp";
-
-        // De bestandsnaam voor de database
-        // Variabele voor het opzetten van de verbinding
-        private static SQLiteConnection _connection;
-        // Variable waar de SQL-commandos tijdelijk in opgeslagen worden
-        private static SQLiteCommand _command;
-
-        /// <summary>
-        /// Haal de bestandsnaam op van de database.
-        /// </summary>
-        public static string DatabaseFilename { get; } = "Rfid-db.sqlite";
-
-        public static string ConnectionString { get; } = $"Data Source = {DatabaseFilename}; Version=3";
+        public const string Zone = "zone";
+        public const string DatabaseFilename = "Rfid-db.sqlite";
+        public const string ConnectionString = "Data Source = " + DatabaseFilename + ";Version=3";
 
 
         public static void PrepareDatabase()
@@ -49,14 +38,14 @@ namespace Server
                 using (var sqlCommand = cn.CreateCommand())
                 {
                     sqlCommand.CommandText =
-                        $"CREATE TABLE {TableName} ({SerialNumber} LONG PRIMARY KEY, {Speed} INT, {Timestamp} LONG)";
+                        $"CREATE TABLE {TableName} ({SerialNumber} LONG PRIMARY KEY, {Speed} INT, {Zone} INT, {Timestamp} LONG)";
                     sqlCommand.ExecuteNonQuery();
                 }
                 cn.Close();
             }
         }
         
-        public static bool InsertData(Rfid rfid, long timestamp = -1)
+        public static bool InsertData(Rfid rfid, int zone, long timestamp = -1)
         {
             int written = 0;
             try
@@ -68,7 +57,7 @@ namespace Server
                     using (var sqlCommand = cn.CreateCommand())
                     {
                         sqlCommand.CommandText =
-                            $"INSERT INTO {TableName} ({SerialNumber}, {Speed}, {Timestamp}) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {longDate})";
+                            $"INSERT INTO {TableName} ({SerialNumber}, {Speed}, {Zone}, {Timestamp}) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {zone}, {longDate})";
                         written = sqlCommand.ExecuteNonQuery();
                     }
                     cn.Close();

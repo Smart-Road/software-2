@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data;
 using System.Data.SQLite;
-using System.Diagnostics;
-using System.Threading;
 
 namespace Server
 {
@@ -44,18 +40,54 @@ namespace Server
 
         public static List<DatabaseEntry> LoadAllFromDatabase()
         {
+            List<DatabaseEntry> allDatabaseEntries;
             using (var connection = new SQLiteConnection(Database.ConnectionString))
             {
                 connection.Open();
-                List<DatabaseEntry> allDatabaseEntries;
                 using (var command = new SQLiteCommand($"SELECT * FROM {Database.TableName}", connection))
                 {
-                    IDataReader reader = command.ExecuteReader();
+                    var reader = command.ExecuteReader();
                     allDatabaseEntries = ReadDataToList(reader);
                 }
                 connection.Close();
-                return allDatabaseEntries;
             }
+            return allDatabaseEntries; // can be null?
+        }
+
+        public static List<DatabaseEntry> LoadZoneFromDb(int zone)
+        {
+            List<DatabaseEntry> entries;
+            using (var connection = new SQLiteConnection(Database.ConnectionString))
+            {
+                connection.Open();
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = $"SELECT * FROM {Database.TableName} WHERE {Database.Zone} = {zone} ";
+                    var reader = cmd.ExecuteReader();
+                    entries = ReadDataToList(reader);
+                }
+                connection.Close();
+            }
+
+            return entries; // can be null?
+        }
+
+        public static List<DatabaseEntry> LoadZoneAfterTimeStamp(int zone, long timestamp)
+        {
+            List<DatabaseEntry> entries;
+            using (var con = new SQLiteConnection(Database.ConnectionString))
+            {
+                con.Open();
+                using (var cmd = con.CreateCommand())
+                {
+                    cmd.CommandText = $"SELECT * FROM {Database.TableName} WHERE {Database.Zone} = {zone} " +
+                                      $"AND {Database.Timestamp} > {timestamp} ";
+                    var reader = cmd.ExecuteReader();
+                    entries = ReadDataToList(reader);
+                }
+            }
+
+            return entries;
         }
 
         public static bool AddEntry(DatabaseEntry entry)
@@ -65,7 +97,7 @@ namespace Server
                 return false;
             }
 
-            var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed), entry.Timestamp);
+            var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed), entry.Zone, entry.Timestamp);
             return retval;
         }
 
@@ -76,7 +108,7 @@ namespace Server
                 return -1;
             }
 
-            
+
             var results = new List<int>();
             try
             {
@@ -90,14 +122,15 @@ namespace Server
                             command.Transaction = transaction;
                             command.CommandText =
                                 $"INSERT INTO {Database.TableName} " +
-                                $"({Database.SerialNumber},{Database.Speed},{Database.Timestamp}) " +
-                                "VALUES (@SerialNumber,@Speed,@Timestamp);";
+                                $"({Database.SerialNumber},{Database.Speed},{Database.Zone},{Database.Timestamp}) " +
+                                "VALUES (@SerialNumber,@Speed,@Zone,@Timestamp);";
                             command.Prepare();
 
                             foreach (var databaseEntry in entries)
                             {
                                 command.Parameters.AddWithValue("@SerialNumber", databaseEntry.SerialNumber);
                                 command.Parameters.AddWithValue("@Speed", databaseEntry.Speed);
+                                command.Parameters.AddWithValue("@Zone", databaseEntry.Zone);
                                 command.Parameters.AddWithValue("@Timestamp", databaseEntry.Timestamp);
                                 results.Add(command.ExecuteNonQuery());
                             }
@@ -109,7 +142,7 @@ namespace Server
             }
             catch (SQLiteException ex)
             {
-                MainGui.Main.AddToInfo($"SQL exception: {ex.Message}");
+                Console.WriteLine(ex);
             }
             return results.Sum();
         }
@@ -129,11 +162,8 @@ namespace Server
                         var obj = cmd.ExecuteScalar();
                         if (!(obj is DBNull))
                         {
-                            timestamp = (long) obj;
+                            timestamp = (long)obj;
                         }
-                        
-                        
-                        //while (reader.Read()) ; // read everything, regardless if we care about the information
                     }
                     cn.Close();
                 }
@@ -155,12 +185,13 @@ namespace Server
                 var serialNumber = (long)reader[Database.SerialNumber];
                 var speed = (int)reader[Database.Speed];
                 long timestamp = 0;
+                var zone = (int)reader[Database.Zone];
                 var timestampobj = reader[Database.Timestamp];
                 if (timestampobj.GetType() != typeof(DBNull))
                 {
                     timestamp = (long)timestampobj;
                 }
-                var entry = new DatabaseEntry(serialNumber, speed, timestamp);
+                var entry = new DatabaseEntry(serialNumber, speed, zone, timestamp);
                 databaseEntries.Add(entry);
             }
             return databaseEntries;
@@ -184,7 +215,8 @@ namespace Server
             {
                 var serialNumber = LongRandom(Rfid.MinHexSerialNumber, Rfid.MaxHexSerialNumber, random);
                 var rfid = new Rfid(serialNumber, random.Next(Rfid.MinSpeed, Rfid.MaxSpeed));
-                var entry = new DatabaseEntry(rfid.SerialNumber, rfid.Speed,
+                var zone = random.Next(1, 1000);
+                var entry = new DatabaseEntry(rfid.SerialNumber, rfid.Speed, zone,
                     Database.ConvertToTimestamp(DateTime.Now));
                 if (!databaseEntries.Contains(entry))
                 {
