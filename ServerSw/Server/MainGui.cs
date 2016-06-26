@@ -36,13 +36,6 @@ namespace Server
             AddToInfo($"{e.Client.Client.RemoteEndPoint} has connected");
         }
 
-        private void messageHandler_MessageReceived(object sender, MessageReceivedEventArgs e)
-        {
-            AddToInfo(e.Message);
-        }
-
-
-
         private void btnAddToDatabase_Click(object sender, EventArgs e)
         {
             var serialNumber = tbRFIDNumber.Text;

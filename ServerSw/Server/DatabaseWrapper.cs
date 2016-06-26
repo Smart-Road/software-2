@@ -290,12 +290,13 @@ namespace Server
                     cn.Open();
                     using (var cmd = cn.CreateCommand())
                     {
-                        cmd.CommandText = $"DELETE from {Database.TableName}";
+                        cmd.CommandText = $"DELETE FROM {Database.TableName}; " + // deletes all entries
+                                          $"VACUUM {Database.TableName}"; // cleans up database space
                         deleted = cmd.ExecuteNonQuery();
                     }
                     cn.Close();
                 }
-                return deleted;
+                return deleted / 2; // vacuum also reports how many rows it affected, I guess
             }
             catch (SQLiteException ex)
             {
