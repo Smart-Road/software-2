@@ -94,6 +94,7 @@
             this.btnUpdate.TabIndex = 5;
             this.btnUpdate.Text = "Update selected rfid";
             this.btnUpdate.UseVisualStyleBackColor = true;
+            this.btnUpdate.Click += new System.EventHandler(this.btnUpdate_Click);
             // 
             // splitContainer1
             // 

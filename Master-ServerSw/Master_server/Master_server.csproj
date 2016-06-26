@@ -7,7 +7,7 @@
     <ProjectGuid>{50B0FB1A-A959-4929-84C1-6503EB1D2EC4}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Master_server</RootNamespace>
+    <RootNamespace>Server</RootNamespace>
     <AssemblyName>Master_server</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -47,6 +47,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\ServerSw\Server\ConnectionAccepter.cs">
+      <Link>ConnectionAccepter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ServerSw\Server\ConnectionUpdate.cs">
+      <Link>ConnectionUpdate.cs</Link>
+    </Compile>
     <Compile Include="..\..\ServerSw\Server\Database.cs">
       <Link>Database.cs</Link>
     </Compile>
@@ -61,7 +67,6 @@
     </Compile>
     <Compile Include="Command.cs" />
     <Compile Include="CommandHandler.cs" />
-    <Compile Include="ConnectionAccepter.cs" />
     <Compile Include="MainGUI.cs">
       <SubType>Form</SubType>
     </Compile>

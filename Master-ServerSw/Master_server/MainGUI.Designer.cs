@@ -1,4 +1,4 @@
-﻿namespace Master_server
+﻿namespace Server
 {
     partial class MainGui
     {

@@ -13,6 +13,7 @@ namespace Server
         SYNCDB,
         ADDRFID,
         GETSPEED,
-        MAXSPEED
+        MAXSPEED,
+        CHANGERFID
     }
 }

@@ -61,6 +61,7 @@
     <Compile Include="Command.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="ConnectionAccepter.cs" />
+    <Compile Include="ConnectionUpdate.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DatabaseEntry.cs" />
     <Compile Include="DatabaseWrapper.cs" />
@@ -75,7 +76,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rfid.cs" />
-    <Compile Include="StreamAndMessage.cs" />
     <EmbeddedResource Include="ChangeRfid.resx">
       <DependentUpon>ChangeRfid.cs</DependentUpon>
     </EmbeddedResource>

@@ -48,6 +48,7 @@
             this.gbAddRfid = new System.Windows.Forms.GroupBox();
             this.gbUpdateRfid = new System.Windows.Forms.GroupBox();
             this.btnUpdateRfid = new System.Windows.Forms.Button();
+            this.btnEmptyDatabase = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudPortnumber)).BeginInit();
@@ -105,7 +106,7 @@
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(255, 413);
+            this.btnClear.Location = new System.Drawing.Point(12, 413);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(75, 23);
             this.btnClear.TabIndex = 8;
@@ -145,10 +146,11 @@
             // 
             this.lblCheckSerialString.AutoSize = true;
             this.lblCheckSerialString.BackColor = System.Drawing.Color.White;
+            this.lblCheckSerialString.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblCheckSerialString.ForeColor = System.Drawing.Color.Red;
             this.lblCheckSerialString.Location = new System.Drawing.Point(179, 22);
             this.lblCheckSerialString.Name = "lblCheckSerialString";
-            this.lblCheckSerialString.Size = new System.Drawing.Size(14, 13);
+            this.lblCheckSerialString.Size = new System.Drawing.Size(15, 13);
             this.lblCheckSerialString.TabIndex = 13;
             this.lblCheckSerialString.Text = "X";
             // 
@@ -269,11 +271,22 @@
             this.btnUpdateRfid.UseVisualStyleBackColor = true;
             this.btnUpdateRfid.Click += new System.EventHandler(this.btnUpdateRfid_Click);
             // 
+            // btnEmptyDatabase
+            // 
+            this.btnEmptyDatabase.Location = new System.Drawing.Point(98, 413);
+            this.btnEmptyDatabase.Name = "btnEmptyDatabase";
+            this.btnEmptyDatabase.Size = new System.Drawing.Size(188, 23);
+            this.btnEmptyDatabase.TabIndex = 23;
+            this.btnEmptyDatabase.Text = "Remove all entries from database";
+            this.btnEmptyDatabase.UseVisualStyleBackColor = true;
+            this.btnEmptyDatabase.Click += new System.EventHandler(this.btnEmptyDatabase_Click);
+            // 
             // MainGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(657, 448);
+            this.Controls.Add(this.btnEmptyDatabase);
             this.Controls.Add(this.gbUpdateRfid);
             this.Controls.Add(this.gbAddRfid);
             this.Controls.Add(this.gbMasterServerConnection);
@@ -314,6 +327,7 @@
         private System.Windows.Forms.GroupBox gbAddRfid;
         private System.Windows.Forms.GroupBox gbUpdateRfid;
         private System.Windows.Forms.Button btnUpdateRfid;
+        private System.Windows.Forms.Button btnEmptyDatabase;
     }
 }
 

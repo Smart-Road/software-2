@@ -1,8 +1,8 @@
 ﻿using System;
-using Server;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Server;
 
-namespace ClientTest
+namespace RFIDTest
 {
     [TestClass]
     public class RfidTest

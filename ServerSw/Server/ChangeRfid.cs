@@ -40,5 +40,17 @@ namespace Server
             lblCurSpeed.Text = selectedRfid.Speed.ToString();
             lblSerialnumber.Text = selectedRfid.SerialNumber.ToString();
         }
+
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (lbRfids.SelectedItem == null)
+            {
+                return;
+            }
+            var entry = ((DatabaseEntry) lbRfids.SelectedItem);
+            var serialNumber = entry.SerialNumber;
+            var maxSpeed = (int) nudNewSpeed.Value;
+            OutgoingConnection.GetInstance()?.SendMessage($"{Command.CHANGERFID}:{serialNumber},{maxSpeed}");
+        }
     }
 }

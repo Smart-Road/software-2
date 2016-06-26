@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.Data.SQLite;
 using System.IO;
 
@@ -43,31 +42,6 @@ namespace Server
                 }
                 cn.Close();
             }
-        }
-        
-        public static bool InsertData(Rfid rfid, int zone, long timestamp = -1)
-        {
-            int written = 0;
-            try
-            {
-                using (var cn = new SQLiteConnection(ConnectionString))
-                {
-                    cn.Open();
-                    var longDate = timestamp < 0 ? ConvertToTimestamp(DateTime.UtcNow) : timestamp;
-                    using (var sqlCommand = cn.CreateCommand())
-                    {
-                        sqlCommand.CommandText =
-                            $"INSERT INTO {TableName} ({SerialNumber}, {Speed}, {Zone}, {Timestamp}) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {zone}, {longDate})";
-                        written = sqlCommand.ExecuteNonQuery();
-                    }
-                    cn.Close();
-                }
-            }
-            catch (SQLiteException)
-            {
-                return false;
-            }
-            return written > 0;
         }
 
         public static long ConvertToTimestamp(DateTime value)

@@ -25,7 +25,7 @@ namespace Server
                    Speed >= Rfid.MinSpeed &&
                    Speed <= Rfid.MaxSpeed &&
                    Zone > -1 &&
-                   Timestamp > 0;
+                   Timestamp > -1;
         }
 
         public Rfid GetRfid()

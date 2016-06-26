@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Master_server
+namespace Server
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     internal enum Command
@@ -19,6 +19,8 @@ namespace Master_server
         CHANGERFID,
         ERROR,
         NO_ZONE_SET,
-        INVALID_AMOUNT_OF_PARAMS
+        INVALID_AMOUNT_OF_PARAMS,
+        ALREADY_IN_DB, 
+        UPDATE_FAILED
     }
 }

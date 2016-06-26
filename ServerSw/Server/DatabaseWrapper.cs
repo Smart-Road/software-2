@@ -97,17 +97,54 @@ namespace Server
                 return false;
             }
 
-            var retval = Database.InsertData(new Rfid(entry.SerialNumber, entry.Speed), entry.Zone, entry.Timestamp);
+            var retval = InsertData(new Rfid(entry.SerialNumber, entry.Speed), entry.Zone, entry.Timestamp);
             return retval;
         }
 
-        public static int AddEntries(List<DatabaseEntry> entries)
+        public static bool UpdateEntry(DatabaseEntry entry)
+        {
+            if (entry == null || !entry.CheckData())
+            {
+                return false;
+            }
+
+            int updated;
+            try
+            {
+                using (var cn = new SQLiteConnection(Database.ConnectionString))
+                {
+                    cn.Open();
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText =
+                            $"UPDATE {Database.TableName} " +
+                            $"SET {Database.Speed} = {entry.Speed}, {Database.Timestamp} = {entry.Timestamp} " + // do not insert the entry timestamp here
+                            $"WHERE {Database.SerialNumber} = {entry.SerialNumber}";
+                        updated = cmd.ExecuteNonQuery();
+                    }
+                    cn.Close();
+                }
+            }
+            catch (SQLiteException)
+            {
+                return false;
+            }
+            return updated > 0;
+        }
+
+        public static bool AddOrUpdateEntry(DatabaseEntry entry)
+        {
+            var allEntries = LoadAllFromDatabase();
+            var update = allEntries.Any(databaseEntry => databaseEntry.SerialNumber == entry.SerialNumber);
+            return update ? UpdateEntry(entry) : AddEntry(entry);
+        }
+
+        public static int AddOrUpdateEntries(List<DatabaseEntry> entries)
         {
             if (entries == null || entries.Count < 1 || !DatabaseEntry.CheckList(entries))
             {
                 return -1;
             }
-
 
             var results = new List<int>();
             try
@@ -115,27 +152,49 @@ namespace Server
                 using (var cn = new SQLiteConnection(Database.ConnectionString))
                 {
                     cn.Open();
-                    using (var command = cn.CreateCommand())
+                    using (SQLiteCommand insertCommand = cn.CreateCommand(), updateCommand = cn.CreateCommand())
                     {
                         using (var transaction = cn.BeginTransaction())
                         {
-                            command.Transaction = transaction;
-                            command.CommandText =
+                            insertCommand.Transaction = transaction;
+                            updateCommand.Transaction = transaction;
+                            insertCommand.CommandText =
                                 $"INSERT INTO {Database.TableName} " +
                                 $"({Database.SerialNumber},{Database.Speed},{Database.Zone},{Database.Timestamp}) " +
-                                "VALUES (@SerialNumber,@Speed,@Zone,@Timestamp);";
-                            command.Prepare();
+                                "VALUES (@SerialNumber,@Speed,@Zone,@Timestamp)";
+                            updateCommand.CommandText =
+                                $"UPDATE {Database.TableName} " +
+                                $"SET {Database.Speed} = @Speed, {Database.Timestamp} = @Timestamp, {Database.Zone} = @Zone " +
+                                $"WHERE {Database.SerialNumber} = @SerialNumber";
 
+                            insertCommand.Prepare();
+                            updateCommand.Prepare();
+
+                            var allEntries = LoadAllFromDatabase();
                             foreach (var databaseEntry in entries)
                             {
-                                command.Parameters.AddWithValue("@SerialNumber", databaseEntry.SerialNumber);
-                                command.Parameters.AddWithValue("@Speed", databaseEntry.Speed);
-                                command.Parameters.AddWithValue("@Zone", databaseEntry.Zone);
-                                command.Parameters.AddWithValue("@Timestamp", databaseEntry.Timestamp);
-                                results.Add(command.ExecuteNonQuery());
+                                var update = allEntries.Any(entry => entry.SerialNumber == databaseEntry.SerialNumber);
+                                if (update)
+                                {
+                                    updateCommand.Parameters.AddWithValue("@SerialNumber", databaseEntry.SerialNumber);
+                                    updateCommand.Parameters.AddWithValue("@Speed", databaseEntry.Speed);
+                                    updateCommand.Parameters.AddWithValue("@Zone", databaseEntry.Zone);
+                                    updateCommand.Parameters.AddWithValue("@Timestamp", databaseEntry.Timestamp);
+                                    results.Add(updateCommand.ExecuteNonQuery());
+                                }
+                                else
+                                {
+                                    insertCommand.Parameters.AddWithValue("@SerialNumber", databaseEntry.SerialNumber);
+                                    insertCommand.Parameters.AddWithValue("@Speed", databaseEntry.Speed);
+                                    insertCommand.Parameters.AddWithValue("@Zone", databaseEntry.Zone);
+                                    insertCommand.Parameters.AddWithValue("@Timestamp", databaseEntry.Timestamp);
+                                    results.Add(insertCommand.ExecuteNonQuery());
+                                }
+
                             }
                             transaction.Commit();
                         }
+
                     }
                     cn.Close();
                 }
@@ -197,6 +256,55 @@ namespace Server
             return databaseEntries;
         }
 
+        public static bool InsertData(Rfid rfid, int zone, long timestamp = -1)
+        {
+            try
+            {
+                using (var cn = new SQLiteConnection(Database.ConnectionString))
+                {
+                    cn.Open();
+                    var longDate = timestamp < 0 ? Database.ConvertToTimestamp(DateTime.UtcNow) : timestamp;
+                    using (var sqlCommand = cn.CreateCommand())
+                    {
+                        sqlCommand.CommandText =
+                            $"INSERT INTO {Database.TableName} ({Database.SerialNumber}, {Database.Speed}, {Database.Zone}, {Database.Timestamp}) VALUES ({rfid.SerialNumber}, {rfid.Speed}, {zone}, {longDate})";
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                    cn.Close();
+                }
+            }
+            catch (SQLiteException)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static int DeleteAllEntries()
+        {
+            try
+            {
+                int deleted;
+                using (var cn = new SQLiteConnection(Database.ConnectionString))
+                {
+                    cn.Open();
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = $"DELETE from {Database.TableName}";
+                        deleted = cmd.ExecuteNonQuery();
+                    }
+                    cn.Close();
+                }
+                return deleted;
+            }
+            catch (SQLiteException ex)
+            {
+                Console.WriteLine(ex);
+                return 0;
+            }
+        }
+
+        // methods for dummy data
         private static long LongRandom(long min, long max, Random rand)
         {
             var buf = new byte[8];
@@ -223,7 +331,7 @@ namespace Server
                     databaseEntries.Add(entry);
                 }
             }
-            var addedEntries = AddEntries(databaseEntries);
+            var addedEntries = AddOrUpdateEntries(databaseEntries);
             Console.WriteLine(addedEntries > 0 ? "Created dummy data" : "Dummy data creation failed");
         }
     }

@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Server;
 
-namespace Master_server
+namespace Server
 {
-
     public class CommandHandler
     {
         private readonly List<MessageReceiver> _messageReceivers = new List<MessageReceiver>();
@@ -51,6 +50,7 @@ namespace Master_server
                         "Syncing db failed");
                     break;
                 case Command.ADDRFID:
+                case Command.CHANGERFID:
                     if (messageReceiver.Zone == 0)
                     {
                         Console.WriteLine("Zone is not set");
@@ -62,7 +62,7 @@ namespace Master_server
                     string[] parameters = sParameter.Split(',');
                     if (parameters.Length != 2)
                     {
-                        messageReceiver.SendMessage($"{Command.ERROR},{Command.INVALID_AMOUNT_OF_PARAMS}");
+                        messageReceiver.SendMessage($"{Command.ERROR}:{Command.INVALID_AMOUNT_OF_PARAMS}");
                         return;
                     }
                     long serialNumber;
@@ -79,14 +79,31 @@ namespace Master_server
                         return;
                     }
 
-                    // add to database
-                    if (!Database.InsertData(rfid, messageReceiver.Zone))
+                    switch (command)
                     {
-                        MainGui.Main.AddInfoToLb("Could not add rfid to database");
-                        return;
+                        case Command.ADDRFID:
+                            // add to database
+                            if (!DatabaseWrapper.InsertData(rfid, messageReceiver.Zone))
+                            {
+                                messageReceiver.SendMessage($"{Command.ERROR}:{Command.ALREADY_IN_DB}");
+                                MainGui.Main.AddInfoToLb("Could not add rfid to database");
+                                return;
+                            }
+
+                            MainGui.Main.AddInfoToLb($"Rfid added to database: ({rfid})");
+                            break;
+                        case Command.CHANGERFID:
+                            if (!DatabaseWrapper.UpdateEntry(new DatabaseEntry(rfid.SerialNumber, 
+                                rfid.Speed,
+                                messageReceiver.Zone, 
+                                Database.ConvertToTimestamp(DateTime.UtcNow))))
+                            {
+                                messageReceiver.SendMessage($"{Command.ERROR}:{Command.UPDATE_FAILED}");
+                                return;
+                            }
+                            MainGui.Main.AddInfoToLb($"Rfid updated: ({rfid})");
+                            break;
                     }
-                    
-                    MainGui.Main.AddInfoToLb($"Rfid added to database: ({rfid})");
                     break;
                 case Command.ZONE:
                     int zone;

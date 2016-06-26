@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    class CommandHandler
+    public class CommandHandler
     {
         private readonly List<MessageReceiver> _messageReceivers = new List<MessageReceiver>();
         private const int FieldsPerEntry = 4;
+
+        public event CommandReceivedDelegate CommandReceived;
+        public delegate void CommandReceivedDelegate(object sender, CommandReceivedEventArgs e);
         public void AddEntry(MessageReceiver msgReceiver)
         {
             _messageReceivers.Add(msgReceiver);
@@ -24,26 +27,28 @@ namespace Server
             _messageReceivers.Remove(messageReceiver);
         }
 
-        private static void MsgReceiver_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void MsgReceiver_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
             string sCommand;
             string sParameter;
 
             if (!ParseMessage(e.Message, out sCommand, out sParameter))
             {
-                MainGui.Main.AddToInfo($"Could not parse command: ({e.Message})");
+                Console.WriteLine($"Could not parse command: ({e.Message})");
                 return;
             }
             Command command;
             if (!Enum.TryParse(sCommand, out command))
             {
-                MainGui.Main.AddToInfo($"Invalid command received: ({sCommand})");
+                Console.WriteLine($"Invalid command received: ({sCommand})");
                 return;
             }
+            OnCommandReceived(new CommandReceivedEventArgs(command, sParameter));
+
             var messageReceiver = sender as MessageReceiver;
             if (messageReceiver == null) return;
 
-            MainGui.Main.AddToInfo($"Command:{command} received with parameter:{sParameter}");
+            Console.WriteLine($"Command:{command} received with parameter:{sParameter}");
             switch (command)
             {
                 case Command.GETSPEED:
@@ -51,13 +56,14 @@ namespace Server
                         long serialNumber;
                         if (!long.TryParse(sParameter, out serialNumber))
                         {
-                            MainGui.Main.AddToInfo("Invalid parameter at getspeed received");
+                            Console.WriteLine("Invalid parameter at getspeed received");
                             return;
                         }
                         var speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
                         if (speed < 0)
                         {
-                            MainGui.Main.OutgoingConnection?.SendMessage(
+                            Console.WriteLine("Speed is not in database");
+                            OutgoingConnection.GetInstance()?.SendMessage(
                                 $"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
                         }
                         else
@@ -68,6 +74,16 @@ namespace Server
                     break;
                 case Command.SYNC:
                     {
+                        if (OutgoingConnection.GetInstance()?.Connected == false)
+                        {
+                            Console.WriteLine("No connection with master-server");
+                            return;
+                        }
+                        if (OutgoingConnection.GetInstance().RemoteEndPoint != messageReceiver.RemoteEndPoint)
+                        {
+                            Console.WriteLine("Not a message from the server");
+                            return;
+                        }
                         var databaseEntries = sParameter.Split(';');
                         var entriesToAdd = new List<DatabaseEntry>();
                         foreach (var databaseEntry in databaseEntries)
@@ -82,30 +98,30 @@ namespace Server
                             int speed, zone;
                             if (!long.TryParse(sSerialNumber, out serialNumber))
                             {
-                                MainGui.Main.AddToInfo("Serialnumber is not valid");
+                                Console.WriteLine("Serialnumber is not valid");
                                 return;
                             }
 
                             if (!int.TryParse(sSpeed, out speed))
                             {
-                                MainGui.Main.AddToInfo("Speed is not valid");
+                                Console.WriteLine("Speed is not valid");
                                 return;
                             }
-                            // maybe add a check for invalid zone
-                            if (!int.TryParse(sZone, out zone))
+
+                            if (!int.TryParse(sZone, out zone) || zone != OutgoingConnection.GetInstance()?.Zone)
                             {
-                                MainGui.Main.AddToInfo("Zone is not valid");
+                                Console.WriteLine("Zone is not valid");
                                 return;
                             }
                             if (!long.TryParse(sTimeStamp, out timestamp))
                             {
-                                MainGui.Main.AddToInfo("Timestamp is not valid");
+                                Console.WriteLine("Timestamp is not valid");
                                 return;
                             }
                             var entry = new DatabaseEntry(serialNumber, speed, zone, timestamp);
                             entriesToAdd.Add(entry);
                         }
-                        var entriesAdded = DatabaseWrapper.AddEntries(entriesToAdd);
+                        var entriesAdded = DatabaseWrapper.AddOrUpdateEntries(entriesToAdd);
 
                         if (entriesAdded < 0)
                         {
@@ -131,12 +147,30 @@ namespace Server
             {
                 command = null;
                 parameter = null;
-                MainGui.Main.AddToInfo($"Invalid amount of parameters received:{msgs.Length}");
+                Console.WriteLine($"Invalid amount of parameters received:{msgs.Length}");
                 return false;
             }
             command = msgs[0];
             parameter = msgs[1];
             return true;
+        }
+
+        protected void OnCommandReceived(CommandReceivedEventArgs e)
+        {
+            CommandReceived?.Invoke(this, e);
+        }
+    }
+
+    
+
+    public class CommandReceivedEventArgs : EventArgs
+    {
+        public readonly Command Command;
+        public readonly string Parameter;
+        public CommandReceivedEventArgs(Command command, string parameter)
+        {
+            Command = command;
+            Parameter = parameter;
         }
     }
 }

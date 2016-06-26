@@ -1,13 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq.Expressions;
+using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 
 namespace Server
@@ -27,9 +23,11 @@ namespace Server
         private readonly char _endDelimiter;
         public event MessageReceivedDelegate MessageReceived;
         public delegate void MessageReceivedDelegate(object sender, MessageReceivedEventArgs e);
-        public delegate void ClientDisconnectedDelegate(object sender, ConnectionLostEventArgs e);
 
+        public delegate void ClientDisconnectedDelegate(object sender, ConnectionLostEventArgs e);
         public event ClientDisconnectedDelegate ClientDisconnected;
+
+        public EndPoint RemoteEndPoint => _client?.Client.RemoteEndPoint;
 
         private enum State
         {
@@ -139,7 +137,7 @@ namespace Server
         {
             if (!_client.Connected)
             {
-                MainGui.Main.AddToInfo("can not send message when not connected");
+                Console.WriteLine("can not send message when not connected");
                 return;
             }
             string messageWithDelimiters = $"{_beginDelimiter}{message}{_endDelimiter}";
@@ -147,7 +145,6 @@ namespace Server
             {
                 throw new LengthException();
             }
-            Console.WriteLine($"Message sent:{messageWithDelimiters}");
             var messageBytes = Encoding.ASCII.GetBytes(messageWithDelimiters);
             _stream.Write(messageBytes, 0, messageBytes.Length);
         }

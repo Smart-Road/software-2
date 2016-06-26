@@ -1,31 +1,25 @@
 ﻿using System;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Server
 {
     public partial class MainGui : Form
     {
-        private ConnectionAccepter connectionAccepter;
-        public OutgoingConnection OutgoingConnection { get; private set; }
+        private ConnectionAccepter _connectionAccepter;
 
         private const int PortNumber = 13;
-
-        public static MainGui Main { get; private set; }
 
         public MainGui()
         {
             InitializeComponent();
-            connectionAccepter = new ConnectionAccepter(PortNumber);
+            _connectionAccepter = new ConnectionAccepter(PortNumber);
             try
             {
-                connectionAccepter.StartAccepting();
+                _connectionAccepter.StartAccepting();
+                _connectionAccepter.ClientAccepted += _connectionAccepter_ClientAccepted;
             }
             catch (SocketException ex)
             {
@@ -34,8 +28,12 @@ namespace Server
 
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
-            Main = this;
             Database.PrepareDatabase();
+        }
+
+        private void _connectionAccepter_ClientAccepted(object sender, ConnectionUpdateEventArgs e)
+        {
+            AddToInfo($"{e.Client.Client.RemoteEndPoint} has connected");
         }
 
         private void messageHandler_MessageReceived(object sender, MessageReceivedEventArgs e)
@@ -51,13 +49,13 @@ namespace Server
             var speed = Convert.ToInt32(nudRFIDSpeed.Value);
 
             if (speed >= Rfid.MinSpeed && speed <= Rfid.MaxSpeed && !string.IsNullOrWhiteSpace(serialNumber) &&
-                OutgoingConnection != null)
+                OutgoingConnection.GetInstance() != null)
             {
                 var rfid = new Rfid(serialNumber, speed);
                 string message = $"{Command.ADDRFID}:{rfid.ToNumberString()}";
                 try
                 {
-                    OutgoingConnection.SendMessage(message);
+                    OutgoingConnection.GetInstance().SendMessage(message);
                     AddToInfo($"Sent message:{message}, with RFID(hex):{rfid}");
                 }
                 catch (IOException ex)
@@ -66,17 +64,17 @@ namespace Server
                     AddToInfo("Network error");
                 }
             }
-            else if (OutgoingConnection == null)
+            else if (OutgoingConnection.GetInstance() == null)
             {
                 AddToInfo("Not yet connected, could not send command.");
             }
 
-            OutgoingConnection?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
+            OutgoingConnection.GetInstance()?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
         }
 
         private void btnGetListOfRFID_Click(object sender, EventArgs e)
         {
-            OutgoingConnection?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
+            OutgoingConnection.GetInstance()?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
         }
 
 
@@ -87,13 +85,13 @@ namespace Server
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (!OutgoingConnection?.Connected ?? true)
+            if (!OutgoingConnection.GetInstance()?.Connected ?? true)
             {
                 try
                 {
-                    OutgoingConnection = new OutgoingConnection(tbServerIp.Text, (int)nudPortnumber.Value, (int)nudZoneId.Value);
-                    OutgoingConnection.ConnectionUpdate += OutgoingConnection_ConnectionUpdate;
-                    OutgoingConnection.MakeConnection();
+                    OutgoingConnection.CreateInstance(tbServerIp.Text, (int)nudPortnumber.Value, (int)nudZoneId.Value);
+                    OutgoingConnection.GetInstance().ConnectionUpdate += OutgoingConnection_ConnectionUpdate;
+                    OutgoingConnection.GetInstance().MakeConnection();
                 }
                 catch (FormatException)
                 {
@@ -101,8 +99,7 @@ namespace Server
                 }
             } else
             {
-                OutgoingConnection?.Disconnect();
-                OutgoingConnection = null;
+                OutgoingConnection.GetInstance().Disconnect();
             }
         }
 
@@ -124,7 +121,7 @@ namespace Server
             var valid = Rfid.ValidateRfid(textBox.Text);
             lblCheckSerialString.Text = valid ? "✔" : "X";
             lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;
-            btnAddToDatabase.Enabled = valid && (OutgoingConnection?.Connected ?? false);
+            btnAddToDatabase.Enabled = valid && (OutgoingConnection.GetInstance()?.Connected ?? false);
         }
 
         public void AddToInfo(string message)
@@ -138,8 +135,15 @@ namespace Server
 
         private void btnUpdateRfid_Click(object sender, EventArgs e)
         {
-            Form updateRfid = new ChangeRfid(OutgoingConnection);
+            var updateRfid = new ChangeRfid(OutgoingConnection.GetInstance());
             updateRfid.Show();
+        }
+
+        private void btnEmptyDatabase_Click(object sender, EventArgs e)
+        {
+            var deletedEntries = DatabaseWrapper.DeleteAllEntries();
+            var amountstring = deletedEntries != 1 ? "entries" : "entry";
+            AddToInfo($"Deleted {deletedEntries} {amountstring} from database");
         }
     }
 }

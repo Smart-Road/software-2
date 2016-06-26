@@ -2,7 +2,7 @@
 using Server;
 using System.Windows.Forms;
 
-namespace Master_server
+namespace Server
 {
     public partial class MainGui : Form
     {
@@ -13,7 +13,8 @@ namespace Master_server
         public MainGui()
         {
             InitializeComponent();
-            _accepter = new ConnectionAccepter(PortNumber, this);
+            Database.PrepareDatabase();
+            _accepter = new ConnectionAccepter(PortNumber);
             _accepter.StartAccepting();
             Main = this;
         }

@@ -22,9 +22,9 @@ namespace RFIDTest
         {
             int zone = 30;
             int speed = 120;
-            Assert.IsTrue(Database.InsertData(new Rfid(Rfid.MinHexSerialNumber, 30), zone));
+            Assert.IsTrue(DatabaseWrapper.InsertData(new Rfid(Rfid.MinHexSerialNumber, 30), zone));
             Assert.IsTrue(DatabaseWrapper.AddEntry(new DatabaseEntry(Rfid.MinHexSerialNumber + 1, speed, zone, Database.ConvertToTimestamp(DateTime.UtcNow))));
-            Assert.IsTrue(Database.InsertData(new Rfid(Rfid.MinHexSerialNumber + 2, speed), zone));
+            Assert.IsTrue(DatabaseWrapper.InsertData(new Rfid(Rfid.MinHexSerialNumber + 2, speed), zone));
         }
     }
 }

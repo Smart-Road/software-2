@@ -1,16 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq.Expressions;
 using System.Net.Sockets;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 
-namespace Master_server
+namespace Server
 {
     public class MessageReceiver
     {
