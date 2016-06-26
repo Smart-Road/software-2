@@ -46,7 +46,6 @@ namespace Server
             using (var cn = new SQLiteConnection(ConnectionString))
             {
                 cn.Open();
-                Console.WriteLine("Open db");
                 using (var sqlCommand = cn.CreateCommand())
                 {
                     sqlCommand.CommandText =
@@ -54,7 +53,6 @@ namespace Server
                     sqlCommand.ExecuteNonQuery();
                 }
                 cn.Close();
-                Console.WriteLine("Close db");
             }
         }
         
@@ -66,7 +64,6 @@ namespace Server
                 using (var cn = new SQLiteConnection(ConnectionString))
                 {
                     cn.Open();
-                    Console.WriteLine("Open db");
                     var longDate = timestamp < 0 ? ConvertToTimestamp(DateTime.UtcNow) : timestamp;
                     using (var sqlCommand = cn.CreateCommand())
                     {
@@ -75,7 +72,6 @@ namespace Server
                         written = sqlCommand.ExecuteNonQuery();
                     }
                     cn.Close();
-                    Console.WriteLine("Close db");
                 }
             }
             catch (SQLiteException)

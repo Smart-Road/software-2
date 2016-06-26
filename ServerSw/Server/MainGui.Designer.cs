@@ -46,6 +46,7 @@
             this.txtPortnumber = new System.Windows.Forms.Label();
             this.gbMasterServerConnection = new System.Windows.Forms.GroupBox();
             this.gbAddRfid = new System.Windows.Forms.GroupBox();
+            this.gbUpdateRfid = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudPortnumber)).BeginInit();
@@ -114,7 +115,7 @@
             this.lbInfo.FormattingEnabled = true;
             this.lbInfo.Location = new System.Drawing.Point(12, 188);
             this.lbInfo.Name = "lbInfo";
-            this.lbInfo.Size = new System.Drawing.Size(553, 212);
+            this.lbInfo.Size = new System.Drawing.Size(624, 212);
             this.lbInfo.TabIndex = 10;
             this.lbInfo.TabStop = false;
             // 
@@ -237,18 +238,28 @@
             this.gbAddRfid.Controls.Add(this.lblCheckSerialString);
             this.gbAddRfid.Controls.Add(this.tbRFIDNumber);
             this.gbAddRfid.Controls.Add(this.nudRFIDSpeed);
-            this.gbAddRfid.Location = new System.Drawing.Point(357, 12);
+            this.gbAddRfid.Location = new System.Drawing.Point(428, 12);
             this.gbAddRfid.Name = "gbAddRfid";
-            this.gbAddRfid.Size = new System.Drawing.Size(208, 158);
+            this.gbAddRfid.Size = new System.Drawing.Size(200, 158);
             this.gbAddRfid.TabIndex = 21;
             this.gbAddRfid.TabStop = false;
             this.gbAddRfid.Text = "Add rfid";
+            // 
+            // gbUpdateRfid
+            // 
+            this.gbUpdateRfid.Location = new System.Drawing.Point(220, 12);
+            this.gbUpdateRfid.Name = "gbUpdateRfid";
+            this.gbUpdateRfid.Size = new System.Drawing.Size(200, 158);
+            this.gbUpdateRfid.TabIndex = 22;
+            this.gbUpdateRfid.TabStop = false;
+            this.gbUpdateRfid.Text = "Update rfid";
             // 
             // MainGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(583, 448);
+            this.ClientSize = new System.Drawing.Size(657, 448);
+            this.Controls.Add(this.gbUpdateRfid);
             this.Controls.Add(this.gbAddRfid);
             this.Controls.Add(this.gbMasterServerConnection);
             this.Controls.Add(this.btnClear);
@@ -285,6 +296,7 @@
         private System.Windows.Forms.Label txtPortnumber;
         private System.Windows.Forms.GroupBox gbMasterServerConnection;
         private System.Windows.Forms.GroupBox gbAddRfid;
+        private System.Windows.Forms.GroupBox gbUpdateRfid;
     }
 }
 

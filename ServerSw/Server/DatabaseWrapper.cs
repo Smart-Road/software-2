@@ -47,7 +47,6 @@ namespace Server
             using (var connection = new SQLiteConnection(Database.ConnectionString))
             {
                 connection.Open();
-                Console.WriteLine("Open db");
                 List<DatabaseEntry> allDatabaseEntries;
                 using (var command = new SQLiteCommand($"SELECT * FROM {Database.TableName}", connection))
                 {
@@ -55,7 +54,6 @@ namespace Server
                     allDatabaseEntries = ReadDataToList(reader);
                 }
                 connection.Close();
-                Console.WriteLine("Close db");
                 return allDatabaseEntries;
             }
         }
@@ -84,7 +82,6 @@ namespace Server
             {
                 using (var cn = new SQLiteConnection(Database.ConnectionString))
                 {
-                    Console.WriteLine("Open db");
                     cn.Open();
                     using (var command = cn.CreateCommand())
                     {
@@ -105,11 +102,9 @@ namespace Server
                                 results.Add(command.ExecuteNonQuery());
                             }
                             transaction.Commit();
-                            // TODO: fix the bug where the db is locked
                         }
                     }
                     cn.Close();
-                    Console.WriteLine("Close db");
                 }
             }
             catch (SQLiteException ex)
@@ -128,7 +123,6 @@ namespace Server
                 using (var cn = new SQLiteConnection(Database.ConnectionString))
                 {
                     cn.Open();
-                    Console.WriteLine("Open db");
                     using (var cmd = cn.CreateCommand())
                     {
                         cmd.CommandText = sqlQuery;
@@ -142,7 +136,6 @@ namespace Server
                         //while (reader.Read()) ; // read everything, regardless if we care about the information
                     }
                     cn.Close();
-                    Console.WriteLine("Close db");
                 }
             }
             catch (SQLiteException ex)
@@ -181,10 +174,6 @@ namespace Server
             return (Math.Abs(longRand % (max - min)) + min);
         }
 
-        /// <summary>
-        /// Functie die een nieuwe tabel aanmaakt op een lege database, en deze vult met een
-        /// aantal records.
-        /// </summary>
         public static void CreateDummyData()
         {
             var databaseEntries = new List<DatabaseEntry>();
