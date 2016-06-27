@@ -14,7 +14,7 @@ namespace Server
         private readonly TcpClient _client;
         private readonly IPAddress _ipAddress;
         private readonly int _portNumber;
-        private CommandHandler _commandHandler = new CommandHandler();
+        private CommandHandler _commandHandler;
         private MessageReceiver _messageReceiver;
         private static OutgoingConnection _outgoingConnection;
 
@@ -26,33 +26,34 @@ namespace Server
         public event ConnectionUpdateDelegate ConnectionUpdate;
         public delegate void ConnectionUpdateDelegate(object sender, ConnectionUpdateEventArgs e);
 
-        private bool _connected;
+        private ConnectionStatus _connectionState;
 
-        public bool Connected
+        public ConnectionStatus ConnectionState
         {
-            get { return _connected; }
+            get { return _connectionState; }
             private set
             {
-                _connected = value;
-                OnConnectionUpdate(new ConnectionUpdateEventArgs(_connected, _client));
+                _connectionState = value;
+                OnConnectionUpdate(new ConnectionUpdateEventArgs(_connectionState, _client));
             }
         }
 
-        private OutgoingConnection(string sIpAdress, int portNumber, int zone)
+        private OutgoingConnection(string sIpAdress, int portNumber, int zone, CommandHandler commandHandler)
         {
+            _commandHandler = commandHandler;
             _bwConnect.DoWork += _bwConnect_DoWork;
             _bwConnect.RunWorkerCompleted += _bwConnect_RunWorkerCompleted;
             _client = new TcpClient();
             _ipAddress = IPAddress.Parse(sIpAdress);
             _portNumber = portNumber;
-            _connected = false;
+            _connectionState = ConnectionStatus.Disconnected;
 
             Zone = zone;
         }
 
-        public static void CreateInstance(string sIpAddress, int portNumber, int zone)
+        public static void CreateInstance(string sIpAddress, int portNumber, int zone, CommandHandler commandHandler)
         {
-            _outgoingConnection = new OutgoingConnection(sIpAddress, portNumber, zone);
+            _outgoingConnection = new OutgoingConnection(sIpAddress, portNumber, zone, commandHandler);
         }
 
         public static OutgoingConnection GetInstance()
@@ -62,12 +63,11 @@ namespace Server
 
         private void _bwConnect_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            Connected = (bool) e.Result;
-            if (Connected)
+            ConnectionState = (ConnectionStatus) e.Result;
+            if (ConnectionState == ConnectionStatus.Connected)
             {
                 SendMessage($"{Command.ZONE}:{Zone}");
             }
-
         }
 
         private void _bwConnect_DoWork(object sender, DoWorkEventArgs e)
@@ -78,11 +78,11 @@ namespace Server
 
         public void MakeConnection()
         {
-            if (Connected) return;
+            if (ConnectionState == ConnectionStatus.Connected) return;
             _bwConnect.RunWorkerAsync();
         }
 
-        private bool Connect()
+        private ConnectionStatus Connect()
         {
             try
             {
@@ -91,24 +91,25 @@ namespace Server
             catch (SocketException ex)
             {
                 Console.WriteLine(ex);
-                return false;
+                return ConnectionStatus.UnableToConnect;
             }
             _messageReceiver = new MessageReceiver(_client);
             _messageReceiver.ClientDisconnected += _messageReceiver_ClientDisconnected;
             _commandHandler.AddEntry(_messageReceiver);
-            return true;
+            return ConnectionStatus.Connected;
         }
 
         private void _messageReceiver_ClientDisconnected(object sender, ConnectionLostEventArgs e)
         {
-            Connected = false;
+            ConnectionState = ConnectionStatus.ConnectionLost;
             _messageReceiver = null;
             _commandHandler = null;
         }
 
         public void Disconnect()
         {
-            Connected = false;
+            _messageReceiver.ClientDisconnected -= _messageReceiver_ClientDisconnected;
+            ConnectionState = ConnectionStatus.Disconnected;
             _messageReceiver = null;
             _commandHandler = null;
             _client.Close();
@@ -117,13 +118,17 @@ namespace Server
 
         public void SendMessage(string message)
         {
-            Console.WriteLine(message);
             _messageReceiver?.SendMessage(message);
         }
 
         protected virtual void OnConnectionUpdate(ConnectionUpdateEventArgs e)
         {
             ConnectionUpdate?.Invoke(this, e);
+        }
+
+        public void AskForSync()
+        {
+            SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
         }
     }
 }

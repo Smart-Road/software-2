@@ -47,8 +47,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\ServerSw\Server\CommandHandledEventArgs.cs">
+      <Link>CommandHandledEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ServerSw\Server\CommandReceivedEventArgs.cs">
+      <Link>CommandReceivedEventArgs.cs</Link>
+    </Compile>
     <Compile Include="..\..\ServerSw\Server\ConnectionAccepter.cs">
       <Link>ConnectionAccepter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\ServerSw\Server\ConnectionStatus.cs">
+      <Link>ConnectionStatus.cs</Link>
     </Compile>
     <Compile Include="..\..\ServerSw\Server\ConnectionUpdate.cs">
       <Link>ConnectionUpdate.cs</Link>
@@ -62,6 +71,9 @@
     <Compile Include="..\..\ServerSw\Server\DatabaseWrapper.cs">
       <Link>DatabaseWrapper.cs</Link>
     </Compile>
+    <Compile Include="..\..\ServerSw\Server\MessageReceiver.cs">
+      <Link>MessageReceiver.cs</Link>
+    </Compile>
     <Compile Include="..\..\ServerSw\Server\RFID.cs">
       <Link>RFID.cs</Link>
     </Compile>
@@ -73,7 +85,6 @@
     <Compile Include="MainGUI.Designer.cs">
       <DependentUpon>MainGUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="MessageReceiver.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainGUI.resx">
@@ -89,6 +100,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Server
 {
@@ -13,6 +11,9 @@ namespace Server
 
         public event CommandReceivedDelegate CommandReceived;
         public delegate void CommandReceivedDelegate(object sender, CommandReceivedEventArgs e);
+        public event CommandHandlerCallbackDelegate CommandHandlerCallback;
+        public delegate void CommandHandlerCallbackDelegate(object sender, CommandHandledEventArgs e);
+        public event MessageReceiver.ClientDisconnectedDelegate ClientDisconnected;
         public void AddEntry(MessageReceiver msgReceiver)
         {
             _messageReceivers.Add(msgReceiver);
@@ -25,6 +26,7 @@ namespace Server
         {
             var messageReceiver = sender as MessageReceiver;
             _messageReceivers.Remove(messageReceiver);
+            OnClientDisconnected(e);
         }
 
         private void MsgReceiver_MessageReceived(object sender, MessageReceivedEventArgs e)
@@ -34,13 +36,13 @@ namespace Server
 
             if (!ParseMessage(e.Message, out sCommand, out sParameter))
             {
-                Console.WriteLine($"Could not parse command: ({e.Message})");
+                OnCommandHandlerCallback(new CommandHandledEventArgs(false, $"Could not parse command: ({e.Message})"));
                 return;
             }
             Command command;
             if (!Enum.TryParse(sCommand, out command))
             {
-                Console.WriteLine($"Invalid command received: ({sCommand})");
+                OnCommandHandlerCallback(new CommandHandledEventArgs(false, $"Invalid command received: ({sCommand}"));
                 return;
             }
             OnCommandReceived(new CommandReceivedEventArgs(command, sParameter));
@@ -48,40 +50,44 @@ namespace Server
             var messageReceiver = sender as MessageReceiver;
             if (messageReceiver == null) return;
 
-            Console.WriteLine($"Command:{command} received with parameter:{sParameter}");
+            OnCommandReceived(new CommandReceivedEventArgs(command, sParameter));
             switch (command)
             {
+                case Command.ERROR:
+                    OnCommandHandlerCallback(new CommandHandledEventArgs(true, sParameter));
+                    break;
                 case Command.GETSPEED:
                     {
                         long serialNumber;
                         if (!long.TryParse(sParameter, out serialNumber))
                         {
-                            Console.WriteLine("Invalid parameter at getspeed received");
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(false, $"Invalid parameter at getspeed received:{sParameter}"));
                             return;
                         }
                         var speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
                         if (speed < 0)
                         {
-                            Console.WriteLine("Speed is not in database");
-                            OutgoingConnection.GetInstance()?.SendMessage(
-                                $"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(false, "Speed is not in database, syncing"));
+                            OutgoingConnection.GetInstance()?.AskForSync();
                         }
                         else
                         {
                             messageReceiver.SendMessage($"{Command.MAXSPEED}:{speed}");
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(true, $"Maxspeed sent to client:{speed}"));
                         }
                     }
                     break;
                 case Command.SYNC:
                     {
-                        if (OutgoingConnection.GetInstance()?.Connected == false)
+                        if (OutgoingConnection.GetInstance()?.ConnectionState != ConnectionStatus.Connected)
                         {
-                            Console.WriteLine("No connection with master-server");
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(false,
+                                "No connection with master-server"));
                             return;
                         }
-                        if (OutgoingConnection.GetInstance().RemoteEndPoint != messageReceiver.RemoteEndPoint)
+                        if (OutgoingConnection.GetInstance().RemoteEndPoint.ToString() != messageReceiver.RemoteEndPoint)
                         {
-                            Console.WriteLine("Not a message from the server");
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(false, "Not a message from the server"));
                             return;
                         }
                         var databaseEntries = sParameter.Split(';');
@@ -98,24 +104,24 @@ namespace Server
                             int speed, zone;
                             if (!long.TryParse(sSerialNumber, out serialNumber))
                             {
-                                Console.WriteLine("Serialnumber is not valid");
+                                OnCommandHandlerCallback(new CommandHandledEventArgs(false, "Serialnumber is not valid"));
                                 return;
                             }
 
                             if (!int.TryParse(sSpeed, out speed))
                             {
-                                Console.WriteLine("Speed is not valid");
+                                OnCommandHandlerCallback(new CommandHandledEventArgs(false, "Speed is not valid"));
                                 return;
                             }
 
                             if (!int.TryParse(sZone, out zone) || zone != OutgoingConnection.GetInstance()?.Zone)
                             {
-                                Console.WriteLine("Zone is not valid");
+                                OnCommandHandlerCallback(new CommandHandledEventArgs(false, "Zone is not valid"));
                                 return;
                             }
                             if (!long.TryParse(sTimeStamp, out timestamp))
                             {
-                                Console.WriteLine("Timestamp is not valid");
+                                OnCommandHandlerCallback(new CommandHandledEventArgs(false, "Timestamp is not valid"));
                                 return;
                             }
                             var entry = new DatabaseEntry(serialNumber, speed, zone, timestamp);
@@ -123,11 +129,10 @@ namespace Server
                         }
                         var entriesAdded = DatabaseWrapper.AddOrUpdateEntries(entriesToAdd);
 
-                        if (entriesAdded < 0)
+                        if (entriesAdded > 0)
                         {
-                            entriesAdded = 0;
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(true, $"Added {entriesAdded} entries to the Database"));
                         }
-                        Console.WriteLine($"Added {entriesAdded} entries to the Database");
                     }
                     break;
             }
@@ -159,18 +164,15 @@ namespace Server
         {
             CommandReceived?.Invoke(this, e);
         }
-    }
 
-    
-
-    public class CommandReceivedEventArgs : EventArgs
-    {
-        public readonly Command Command;
-        public readonly string Parameter;
-        public CommandReceivedEventArgs(Command command, string parameter)
+        protected virtual void OnCommandHandlerCallback(CommandHandledEventArgs e)
         {
-            Command = command;
-            Parameter = parameter;
+            CommandHandlerCallback?.Invoke(this, e);
+        }
+
+        protected virtual void OnClientDisconnected(ConnectionLostEventArgs e)
+        {
+            ClientDisconnected?.Invoke(this, e);
         }
     }
 }

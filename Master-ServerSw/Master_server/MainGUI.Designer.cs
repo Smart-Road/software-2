@@ -32,6 +32,7 @@
             this.lbInfo = new System.Windows.Forms.ListBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.MessageRecieve = new System.Windows.Forms.Timer(this.components);
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // lbInfo
@@ -59,6 +60,7 @@
         private System.Windows.Forms.ListBox lbInfo;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.Timer MessageRecieve;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 

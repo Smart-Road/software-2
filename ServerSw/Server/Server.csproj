@@ -59,8 +59,11 @@
       <DependentUpon>ChangeRfid.cs</DependentUpon>
     </Compile>
     <Compile Include="Command.cs" />
+    <Compile Include="CommandHandledEventArgs.cs" />
     <Compile Include="CommandHandler.cs" />
+    <Compile Include="CommandReceivedEventArgs.cs" />
     <Compile Include="ConnectionAccepter.cs" />
+    <Compile Include="ConnectionStatus.cs" />
     <Compile Include="ConnectionUpdate.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DatabaseEntry.cs" />

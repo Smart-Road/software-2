@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Server;
 
 namespace Server
 {
@@ -11,6 +10,11 @@ namespace Server
 
         public event CommandHandlerCallbackDelegate CommandHandlerCallback;
         public delegate void CommandHandlerCallbackDelegate(object sender, CommandHandledEventArgs e);
+
+        public event CommandReceivedDelegate CommandReceived;
+        public delegate void CommandReceivedDelegate(object sender, CommandReceivedEventArgs e);
+
+        public event MessageReceiver.ClientDisconnectedDelegate ClientDisconnected;
         private const string SyncDelimiter = ";";
 
         public void AddEntry(MessageReceiver msgReceiver)
@@ -24,7 +28,14 @@ namespace Server
         private void MsgReceiver_ClientDisconnected(object sender, ConnectionLostEventArgs e)
         {
             var messageReceiver = sender as MessageReceiver;
-            _messageReceivers.Remove(messageReceiver);
+            if (messageReceiver != null)
+            {
+                messageReceiver.ClientDisconnected -= MsgReceiver_ClientDisconnected;
+                messageReceiver.MessageReceived -= MsgReceiver_MessageReceived;
+                messageReceiver.Disconnect();
+                _messageReceivers.Remove(messageReceiver);
+            }
+            OnClientDisconnected(e);
         }
 
         private void MsgReceiver_MessageReceived(object sender, MessageReceivedEventArgs e)
@@ -42,6 +53,7 @@ namespace Server
                 OnCommandHandled(new CommandHandledEventArgs(false, $"Invalid command received: ({sCommand})"));
                 return;
             }
+            OnCommandReceived(new CommandReceivedEventArgs(command, sParameter));
             var messageReceiver = sender as MessageReceiver;
             if (messageReceiver == null) return;
             switch (command)
@@ -103,6 +115,7 @@ namespace Server
                                 messageReceiver.SendMessage($"{Command.ERROR}:{Command.UPDATE_FAILED}");
                                 return;
                             }
+                            messageReceiver.SendMessage($"{Command.CHANGERFID}:{Command.OK}");
                             OnCommandHandled(new CommandHandledEventArgs(true, $"Rfid updated: ({rfid})"));
                             break;
                     }
@@ -182,17 +195,15 @@ namespace Server
         {
             CommandHandlerCallback?.Invoke(this, e);
         }
-    }
 
-    public class CommandHandledEventArgs : EventArgs
-    {
-        public readonly string Message;
-        public readonly bool Valid;
-        public CommandHandledEventArgs(bool valid, string message)
+        protected virtual void OnCommandReceived(CommandReceivedEventArgs e)
         {
-            Valid = valid;
-            Message = message;
+            CommandReceived?.Invoke(this, e);
+        }
+
+        protected virtual void OnClientDisconnected(ConnectionLostEventArgs e)
+        {
+            ClientDisconnected?.Invoke(this, e);
         }
     }
-
 }

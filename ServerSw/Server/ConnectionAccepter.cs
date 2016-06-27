@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -9,24 +9,25 @@ namespace Server
 {
     public class ConnectionAccepter
     {
-        private readonly CommandHandler _commandHandler = new CommandHandler();
+        private readonly CommandHandler _commandHandler;
         private volatile bool _accepting;
         private readonly BackgroundWorker _bwConnectionAccepter = new BackgroundWorker();
         private readonly List<TcpClient> _clients = new List<TcpClient>();
 
         public event ClientAcceptedDelegate ClientAccepted;
         public delegate void ClientAcceptedDelegate(object sender, ConnectionUpdateEventArgs e);
-        public event CommandHandlerCallbackDelegate CommandHandlerCallback;
-        public delegate void CommandHandlerCallbackDelegate(object sender, CommandHandledEventArgs e);
+        public event MessageReceiver.ClientDisconnectedDelegate ClientDisconnected;
 
         private readonly TcpListener _tcpListener;
 
-        public ConnectionAccepter(int portNumber)
+        public ConnectionAccepter(int portNumber, CommandHandler commandHandler)
         {
+            _commandHandler = commandHandler;
             _bwConnectionAccepter.WorkerReportsProgress = true;
             _bwConnectionAccepter.DoWork += _bwConnectionAccepter_AcceptClients;
             _tcpListener = new TcpListener(IPAddress.Any, portNumber);
             _accepting = false;
+            _commandHandler.ClientDisconnected += _commandHandler_ClientDisconnected;
         }
 
         private void _bwConnectionAccepter_AcceptClients(object sender, DoWorkEventArgs e)
@@ -42,18 +43,23 @@ namespace Server
                 var client = _tcpListener.AcceptTcpClient();
                 _clients.Add(client);
 
-                Console.WriteLine($"Client connected:{client.Client.RemoteEndPoint}");
-                OnClientAccepted(new ConnectionUpdateEventArgs(true, client));
+                OnClientAccepted(new ConnectionUpdateEventArgs(ConnectionStatus.Connected, client));
 
                 var messageReceiver = new MessageReceiver(client);
-                _commandHandler.CommandHandlerCallback += OnCommandCallback;
                 _commandHandler.AddEntry(messageReceiver);
             }
         }
 
-        protected virtual void OnCommandCallback(object sender, CommandHandledEventArgs e)
+        private void _commandHandler_ClientDisconnected(object sender, ConnectionLostEventArgs e)
         {
-            CommandHandlerCallback?.Invoke(sender, e);
+            var toRemove = _clients.FirstOrDefault(tcpClient => !tcpClient.Connected);
+            _clients.Remove(toRemove);
+            OnClientDisconnected(e);
+
+        }
+        protected virtual void OnClientDisconnected(ConnectionLostEventArgs e)
+        {
+            ClientDisconnected?.Invoke(this, e);
         }
 
 

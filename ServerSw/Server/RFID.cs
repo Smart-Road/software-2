@@ -38,8 +38,8 @@ namespace Server
             {
                 throw new ArgumentException(nameof(serialNumber));
             }
-            this._serialNumber = serialNumber;
-            this.Speed = speed;
+            _serialNumber = serialNumber;
+            Speed = speed;
         }
 
         public Rfid(string serialNumberString, int speed)

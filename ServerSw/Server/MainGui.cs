@@ -9,17 +9,21 @@ namespace Server
     public partial class MainGui : Form
     {
         private ConnectionAccepter _connectionAccepter;
+        private readonly CommandHandler _commandHandler = new CommandHandler();
 
         private const int PortNumber = 13;
 
         public MainGui()
         {
             InitializeComponent();
-            _connectionAccepter = new ConnectionAccepter(PortNumber);
+            _connectionAccepter = new ConnectionAccepter(PortNumber, _commandHandler);
             try
             {
                 _connectionAccepter.StartAccepting();
                 _connectionAccepter.ClientAccepted += _connectionAccepter_ClientAccepted;
+                _connectionAccepter.ClientDisconnected += _connectionAccepter_ClientDisconnected;
+                _commandHandler.CommandHandlerCallback += _commandHandler_CommandHandlerCallback;
+                _commandHandler.CommandReceived += _commandHandler_CommandReceived;
             }
             catch (SocketException ex)
             {
@@ -29,6 +33,21 @@ namespace Server
             nudRFIDSpeed.Minimum = Rfid.MinSpeed;
             nudRFIDSpeed.Maximum = Rfid.MaxSpeed;
             Database.PrepareDatabase();
+        }
+
+        private void _commandHandler_CommandReceived(object sender, CommandReceivedEventArgs e)
+        {
+            //AddToInfo($"Command received:{e.Command}:{e.Parameter}");
+        }
+
+        private void _commandHandler_CommandHandlerCallback(object sender, CommandHandledEventArgs e)
+        {
+            AddToInfo(e.Message);
+        }
+
+        private void _connectionAccepter_ClientDisconnected(object sender, ConnectionLostEventArgs e)
+        {
+            AddToInfo($"Client disconnected:{e.RemoteEndPoint}");
         }
 
         private void _connectionAccepter_ClientAccepted(object sender, ConnectionUpdateEventArgs e)
@@ -62,12 +81,12 @@ namespace Server
                 AddToInfo("Not yet connected, could not send command.");
             }
 
-            OutgoingConnection.GetInstance()?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
+            OutgoingConnection.GetInstance()?.AskForSync();
         }
 
         private void btnGetListOfRFID_Click(object sender, EventArgs e)
         {
-            OutgoingConnection.GetInstance()?.SendMessage($"{Command.SYNCDB}:{DatabaseWrapper.GetLatestTimestamp()}");
+            OutgoingConnection.GetInstance()?.AskForSync();
         }
 
 
@@ -78,11 +97,11 @@ namespace Server
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (!OutgoingConnection.GetInstance()?.Connected ?? true)
+            if (OutgoingConnection.GetInstance()?.ConnectionState != ConnectionStatus.Connected)
             {
                 try
                 {
-                    OutgoingConnection.CreateInstance(tbServerIp.Text, (int)nudPortnumber.Value, (int)nudZoneId.Value);
+                    OutgoingConnection.CreateInstance(tbServerIp.Text, (int)nudPortnumber.Value, (int)nudZoneId.Value, _commandHandler);
                     OutgoingConnection.GetInstance().ConnectionUpdate += OutgoingConnection_ConnectionUpdate;
                     OutgoingConnection.GetInstance().MakeConnection();
                 }
@@ -92,19 +111,29 @@ namespace Server
                 }
             } else
             {
+                syncTimer.Stop();
                 OutgoingConnection.GetInstance().Disconnect();
             }
         }
 
         private void OutgoingConnection_ConnectionUpdate(object sender, ConnectionUpdateEventArgs e)
         {
-            AddToInfo(e.ConnectionState ? "Got connection!" : "Got no connection :(");
+            var connected = e.ConnectionState == ConnectionStatus.Connected;
+            AddToInfo(connected ? "Got connection!" : "Got no connection :(");
             btnConnect.Invoke(new EventHandler(delegate
             {
-                btnConnect.Text = e.ConnectionState ? "Disconnect" : "Connect";
+                btnConnect.Text = connected ? "Disconnect" : "Connect";
                 tbRFIDNumber_TextChanged(tbRFIDNumber, null);
-                tbServerIp.Enabled = nudZoneId.Enabled = nudPortnumber.Enabled = !e.ConnectionState;
-                btnGetListOfRFID.Enabled = btnUpdateRfid.Enabled = e.ConnectionState;
+                tbServerIp.Enabled = nudZoneId.Enabled = nudPortnumber.Enabled = !connected;
+                btnGetListOfRFID.Enabled = btnUpdateRfid.Enabled = connected;
+                if (connected)
+                {
+                    syncTimer.Start();
+                }
+                else
+                {
+                    syncTimer.Stop();
+                }
             }));
         }
 
@@ -114,7 +143,7 @@ namespace Server
             var valid = Rfid.ValidateRfid(textBox.Text);
             lblCheckSerialString.Text = valid ? "✔" : "X";
             lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;
-            btnAddToDatabase.Enabled = valid && (OutgoingConnection.GetInstance()?.Connected ?? false);
+            btnAddToDatabase.Enabled = valid && (OutgoingConnection.GetInstance()?.ConnectionState == ConnectionStatus.Connected);
         }
 
         public void AddToInfo(string message)
@@ -137,6 +166,11 @@ namespace Server
             var deletedEntries = DatabaseWrapper.DeleteAllEntries();
             var amountstring = deletedEntries != 1 ? "entries" : "entry";
             AddToInfo($"Deleted {deletedEntries} {amountstring} from database");
+        }
+
+        private void syncTimer_Tick(object sender, EventArgs e)
+        {
+            OutgoingConnection.GetInstance()?.AskForSync();
         }
     }
 }

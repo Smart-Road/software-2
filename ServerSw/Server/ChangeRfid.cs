@@ -24,9 +24,12 @@ namespace Server
 
         private void _outgoingConnection_ConnectionUpdate(object sender, ConnectionUpdateEventArgs e)
         {
-            if (!e.ConnectionState)
+            if (e.ConnectionState != ConnectionStatus.Connected)
             {
-                Close();
+                this.Invoke(new EventHandler(delegate
+                {
+                    Close();
+                }));
             }
         }
 
@@ -59,6 +62,7 @@ namespace Server
             var serialNumber = entry.SerialNumber;
             var maxSpeed = (int) nudNewSpeed.Value;
             OutgoingConnection.GetInstance()?.SendMessage($"{Command.CHANGERFID}:{serialNumber},{maxSpeed}");
+            OutgoingConnection.GetInstance()?.AskForSync();
         }
     }
 }

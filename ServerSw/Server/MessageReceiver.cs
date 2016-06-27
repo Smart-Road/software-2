@@ -1,33 +1,34 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
-
 
 namespace Server
 {
     public class MessageReceiver
     {
-        private const int MaxCommandLength = 10000;
+        private const int MaxCommandLength = 1024;
         private string _received = string.Empty;
         private volatile bool _receiving = false;
         private string _lastCommand = string.Empty;
-        private readonly BackgroundWorker _bwMessageListener = new BackgroundWorker();
+        private BackgroundWorker _bwMessageListener = new BackgroundWorker();
 
-        private readonly NetworkStream _stream;
-        private readonly TcpClient _client;
+        private NetworkStream _stream;
+        private TcpClient _client;
         private State _state = State.Waiting;
         private readonly char _beginDelimiter;
         private readonly char _endDelimiter;
-        public event MessageReceivedDelegate MessageReceived;
+
         public delegate void MessageReceivedDelegate(object sender, MessageReceivedEventArgs e);
 
         public delegate void ClientDisconnectedDelegate(object sender, ConnectionLostEventArgs e);
+
+        public event MessageReceivedDelegate MessageReceived;
         public event ClientDisconnectedDelegate ClientDisconnected;
 
-        public EndPoint RemoteEndPoint => _client?.Client.RemoteEndPoint;
+        public int Zone { get; set; } = 0;
+        public readonly string RemoteEndPoint;
 
         private enum State
         {
@@ -47,16 +48,18 @@ namespace Server
             _bwMessageListener.DoWork += ListenForCommandsBw;
             _bwMessageListener.ProgressChanged += bwMessageListener_ReportProgress;
             _bwMessageListener.RunWorkerCompleted += _bwMessageListener_RunWorkerCompleted;
+
+            RemoteEndPoint = _client?.Client.RemoteEndPoint.ToString();
         }
 
         private void _bwMessageListener_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (!(e.Result is ConnectionLostEventArgs)) return;
-            var eventArgs = (ConnectionLostEventArgs)e.UserState;
+            var eventArgs = (ConnectionLostEventArgs) e.Result;
             OnConnectionLost(eventArgs);
         }
 
-        public void bwMessageListener_ReportProgress(object sender, ProgressChangedEventArgs e)
+        private void bwMessageListener_ReportProgress(object sender, ProgressChangedEventArgs e)
         {
             var args = e.UserState as MessageReceivedEventArgs;
             if (args == null) return;
@@ -72,7 +75,7 @@ namespace Server
 
         private void ListenForCommandsBw(object sender, DoWorkEventArgs e)
         {
-            var worker = (BackgroundWorker)sender;
+            var worker = (BackgroundWorker) sender;
             while (_receiving)
             {
                 try
@@ -80,10 +83,10 @@ namespace Server
                     var byteIn = _stream.ReadByte();
                     if (byteIn < 0)
                     {
-                        e.Result = new ConnectionLostEventArgs();
+                        e.Result = new ConnectionLostEventArgs(RemoteEndPoint);
                         return;
                     }
-                    byte[] bytes = { (byte)byteIn };
+                    byte[] bytes = {(byte) byteIn};
                     var incoming = Encoding.ASCII.GetChars(bytes);
                     switch (_state)
                     {
@@ -105,7 +108,7 @@ namespace Server
                                 _received = string.Empty;
                                 _state = State.Waiting;
                                 worker.ReportProgress(0,
-                                    new MessageReceivedEventArgs(_lastCommand, _stream));
+                                    new MessageReceivedEventArgs(_lastCommand, _stream, Zone));
                             }
                             if (_received.Length > MaxCommandLength)
                             {
@@ -120,14 +123,21 @@ namespace Server
                 {
                     _receiving = false;
                     Console.WriteLine(ex);
-                    e.Result = new ConnectionLostEventArgs();
+                    e.Result = new ConnectionLostEventArgs(RemoteEndPoint);
                     return;
                 }
                 catch (ObjectDisposedException ex)
                 {
                     _receiving = false;
                     Console.WriteLine(ex);
-                    e.Result = new ConnectionLostEventArgs();
+                    e.Result = new ConnectionLostEventArgs(RemoteEndPoint);
+                    return;
+                }
+                catch (NotSupportedException ex)
+                {
+                    _receiving = false;
+                    Console.WriteLine(ex);
+                    e.Result = new ConnectionLostEventArgs(RemoteEndPoint);
                     return;
                 }
             }
@@ -154,6 +164,11 @@ namespace Server
             _stream.Close();
             _client.Close();
             _receiving = false;
+            _client = null;
+            _stream = null;
+            _bwMessageListener = null;
+            ClientDisconnected = null;
+            MessageReceived = null;
         }
 
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
@@ -187,15 +202,23 @@ namespace Server
     {
         public string Message { get; set; }
         public NetworkStream NetworkStream { get; set; }
+        public int Zone { get; set; }
 
-        public MessageReceivedEventArgs(string message, NetworkStream stream)
+        public MessageReceivedEventArgs(string message, NetworkStream stream, int zone)
         {
             Message = message;
             NetworkStream = stream;
+            Zone = zone;
         }
     }
 
     public class ConnectionLostEventArgs : EventArgs
     {
+        public readonly string RemoteEndPoint;
+
+        public ConnectionLostEventArgs(string remoteEndPoint)
+        {
+            RemoteEndPoint = remoteEndPoint;
+        }
     }
 }

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.btnAddToDatabase = new System.Windows.Forms.Button();
             this.nudRFIDSpeed = new System.Windows.Forms.NumericUpDown();
             this.txtNumberRFID = new System.Windows.Forms.Label();
@@ -49,6 +50,7 @@
             this.gbUpdateRfid = new System.Windows.Forms.GroupBox();
             this.btnUpdateRfid = new System.Windows.Forms.Button();
             this.btnEmptyDatabase = new System.Windows.Forms.Button();
+            this.syncTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.nudRFIDSpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudZoneId)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudPortnumber)).BeginInit();
@@ -281,6 +283,11 @@
             this.btnEmptyDatabase.UseVisualStyleBackColor = true;
             this.btnEmptyDatabase.Click += new System.EventHandler(this.btnEmptyDatabase_Click);
             // 
+            // syncTimer
+            // 
+            this.syncTimer.Interval = 10000;
+            this.syncTimer.Tick += new System.EventHandler(this.syncTimer_Tick);
+            // 
             // MainGui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -328,6 +335,7 @@
         private System.Windows.Forms.GroupBox gbUpdateRfid;
         private System.Windows.Forms.Button btnUpdateRfid;
         private System.Windows.Forms.Button btnEmptyDatabase;
+        private System.Windows.Forms.Timer syncTimer;
     }
 }
 
