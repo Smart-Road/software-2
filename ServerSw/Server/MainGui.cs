@@ -143,7 +143,7 @@ namespace Server
             {
                 btnConnect.Text = connected ? "Disconnect" : "Connect";
                 tbRFIDNumber_TextChanged(tbRFIDNumber, null);
-                tbServerIp.Enabled = nudZoneId.Enabled = nudPortnumber.Enabled = !connected;
+                tbServerIp.Enabled = nudZoneId.Enabled = nudPortnumber.Enabled = btnEmptyDatabase.Enabled = !connected;
                 btnGetListOfRFID.Enabled = btnUpdateRfid.Enabled = connected;
                 if (connected)
                 {

@@ -9,6 +9,7 @@
         GETSPEED,
         MAXSPEED,
         CHANGERFID,
-        ERROR
+        ERROR,
+        SPEED_NOT_FOUND
     }
 }

@@ -73,7 +73,6 @@ namespace Server
         private void _bwConnect_DoWork(object sender, DoWorkEventArgs e)
         {
             e.Result = Connect();
-            return;
         }
 
         public void MakeConnection()

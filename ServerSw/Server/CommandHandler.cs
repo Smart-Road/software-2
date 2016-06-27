@@ -1,13 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 
 namespace Server
 {
+    public class GetSpeedArgs
+    {
+        public readonly long Parameter;
+        public readonly MessageReceiver MsgReceiver;
+        public GetSpeedArgs(MessageReceiver msgReceiver, long parameter)
+        {
+            MsgReceiver = msgReceiver;
+            Parameter = parameter;
+        }
+    }
     public class CommandHandler
     {
         private readonly List<MessageReceiver> _messageReceivers = new List<MessageReceiver>();
         private const int FieldsPerEntry = 4;
+        private readonly BackgroundWorker _bwGetSpeed = new BackgroundWorker();
 
         public event CommandReceivedDelegate CommandReceived;
         public delegate void CommandReceivedDelegate(object sender, CommandReceivedEventArgs e);
@@ -20,6 +33,33 @@ namespace Server
             msgReceiver.MessageReceived += MsgReceiver_MessageReceived;
             msgReceiver.ClientDisconnected += MsgReceiver_ClientDisconnected;
             msgReceiver.ListenForCommands();
+        }
+
+        public CommandHandler()
+        {
+            _bwGetSpeed.DoWork += _bwGetSpeed_DoWork;
+        }
+
+        private void _bwGetSpeed_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var getSpeedArgs = e.Argument as GetSpeedArgs;
+            if (getSpeedArgs == null) return;
+            var speed = DatabaseWrapper.GetSpeedFromDb(getSpeedArgs.Parameter);
+            if (speed < 0)
+            {
+                OnCommandHandlerCallback(new CommandHandledEventArgs(true, "Speed is not in database, syncing"));
+                OutgoingConnection.GetInstance()?.AskForSync();
+                Thread.Sleep(2000);
+                // try to get it again
+                speed = DatabaseWrapper.GetSpeedFromDb(getSpeedArgs.Parameter);
+            }
+            if (speed < 0)
+            {
+                getSpeedArgs.MsgReceiver.SendMessage($"{Command.ERROR}:{Command.SPEED_NOT_FOUND}");
+                return;
+            }
+            getSpeedArgs.MsgReceiver.SendMessage($"{Command.MAXSPEED}:{speed}");
+            OnCommandHandlerCallback(new CommandHandledEventArgs(true, $"Maxspeed sent to client:{speed}"));
         }
 
         private void MsgReceiver_ClientDisconnected(object sender, ConnectionLostEventArgs e)
@@ -64,17 +104,7 @@ namespace Server
                             OnCommandHandlerCallback(new CommandHandledEventArgs(false, $"Invalid parameter at getspeed received:{sParameter}"));
                             return;
                         }
-                        var speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
-                        if (speed < 0)
-                        {
-                            OnCommandHandlerCallback(new CommandHandledEventArgs(true, "Speed is not in database, syncing"));
-                            OutgoingConnection.GetInstance()?.AskForSync();
-                        }
-                        else
-                        {
-                            messageReceiver.SendMessage($"{Command.MAXSPEED}:{speed}");
-                            OnCommandHandlerCallback(new CommandHandledEventArgs(true, $"Maxspeed sent to client:{speed}"));
-                        }
+                        _bwGetSpeed.RunWorkerAsync(new GetSpeedArgs(messageReceiver, serialNumber));
                     }
                     break;
                 case Command.SYNC:
