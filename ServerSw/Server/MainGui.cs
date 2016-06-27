@@ -42,7 +42,10 @@ namespace Server
 
         private void _commandHandler_CommandHandlerCallback(object sender, CommandHandledEventArgs e)
         {
-            AddToInfo(e.Message);
+            if (e.Valid)
+            {
+                AddToInfo(e.Message);
+            }
         }
 
         private void _connectionAccepter_ClientDisconnected(object sender, ConnectionLostEventArgs e)
@@ -119,7 +122,23 @@ namespace Server
         private void OutgoingConnection_ConnectionUpdate(object sender, ConnectionUpdateEventArgs e)
         {
             var connected = e.ConnectionState == ConnectionStatus.Connected;
-            AddToInfo(connected ? "Got connection!" : "Got no connection :(");
+            switch (e.ConnectionState)
+            {
+                case ConnectionStatus.Disconnected:
+                    AddToInfo("Disconnected");
+                    break;
+                case ConnectionStatus.Connected:
+                    AddToInfo("Got connection");
+                    break;
+                case ConnectionStatus.ConnectionLost:
+                    AddToInfo("Connection lost");
+                    break;
+                case ConnectionStatus.UnableToConnect:
+                    AddToInfo("Could not connect");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
             btnConnect.Invoke(new EventHandler(delegate
             {
                 btnConnect.Text = connected ? "Disconnect" : "Connect";
@@ -139,7 +158,7 @@ namespace Server
 
         private void tbRFIDNumber_TextChanged(object sender, EventArgs e)
         {
-            var textBox = (TextBox)sender;
+            var textBox = (TextBox) sender;
             var valid = Rfid.ValidateRfid(textBox.Text);
             lblCheckSerialString.Text = valid ? "✔" : "X";
             lblCheckSerialString.ForeColor = valid ? Color.Green : Color.Red;

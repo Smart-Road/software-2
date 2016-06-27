@@ -67,7 +67,7 @@ namespace Server
                         var speed = DatabaseWrapper.GetSpeedFromDb(serialNumber);
                         if (speed < 0)
                         {
-                            OnCommandHandlerCallback(new CommandHandledEventArgs(false, "Speed is not in database, syncing"));
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(true, "Speed is not in database, syncing"));
                             OutgoingConnection.GetInstance()?.AskForSync();
                         }
                         else
@@ -131,7 +131,13 @@ namespace Server
 
                         if (entriesAdded > 0)
                         {
-                            OnCommandHandlerCallback(new CommandHandledEventArgs(true, $"Added {entriesAdded} entries to the Database"));
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(true,
+                                $"Added {entriesAdded} entries to the Database"));
+                        }
+                        else
+                        {
+                            OnCommandHandlerCallback(new CommandHandledEventArgs(false,
+                                "No entries were added to the database"));
                         }
                     }
                     break;
