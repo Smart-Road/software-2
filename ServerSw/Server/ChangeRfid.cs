@@ -20,6 +20,12 @@ namespace Server
             _outgoingConnection.ConnectionUpdate += _outgoingConnection_ConnectionUpdate;
             nudNewSpeed.Minimum = Rfid.MinSpeed;
             nudNewSpeed.Maximum = Rfid.MaxSpeed;
+            this.Closing += ChangeRfid_Closing;
+        }
+
+        private void ChangeRfid_Closing(object sender, CancelEventArgs e)
+        {
+            _outgoingConnection.ConnectionUpdate -= _outgoingConnection_ConnectionUpdate;
         }
 
         private void _outgoingConnection_ConnectionUpdate(object sender, ConnectionUpdateEventArgs e)
