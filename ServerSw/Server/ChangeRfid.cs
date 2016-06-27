@@ -56,6 +56,7 @@ namespace Server
             var selectedRfid = (DatabaseEntry)((ListBox) sender).SelectedItem;
             lblCurSpeed.Text = selectedRfid.Speed.ToString();
             lblSerialnumber.Text = selectedRfid.SerialNumber.ToString();
+            nudNewSpeed.Value = selectedRfid.Speed;
         }
 
         private void btnUpdate_Click(object sender, EventArgs e)

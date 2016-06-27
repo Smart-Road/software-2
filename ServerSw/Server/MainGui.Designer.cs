@@ -76,6 +76,11 @@
             this.nudRFIDSpeed.Name = "nudRFIDSpeed";
             this.nudRFIDSpeed.Size = new System.Drawing.Size(106, 20);
             this.nudRFIDSpeed.TabIndex = 4;
+            this.nudRFIDSpeed.Value = new decimal(new int[] {
+            30,
+            0,
+            0,
+            0});
             // 
             // txtNumberRFID
             // 
